@@ -6,19 +6,26 @@ import mongoose from "mongoose";
  */
 const conectarDB = async (): Promise<void> => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI ?? "mongodb://localhost:27017/devjobs", {
-      // biome-ignore lint/style/noNonNullAssertion: Configuración deprecation de mongoose
-      useNewUrlParser: true,
-      // biome-ignore lint/style/noNonNullAssertion:
-      useUnifiedTopology: true,
-      // biome-ignore lint/style/noNonNullAssertion:
-      useFindAndModify: false,
-      // biome-ignore lint/style/noNonNullAssertion:
-      useCreateIndex: true,
+    const mongoUri = process.env.MONGODB_URI ?? "mongodb://localhost:27017/devjobs";
+    
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     });
+    
     console.log("Base de datos conectada | Database connected");
+    
+    // Manejar eventos de conexión
+    mongoose.connection.on("error", (err) => {
+      console.error("MongoDB connection error:", err);
+    });
+    
+    mongoose.connection.on("disconnected", () => {
+      console.log("MongoDB disconnected");
+    });
+    
   } catch (error) {
-    console.log("Error | Error:", error);
+    console.log("Error al conectar a MongoDB:", error);
     process.exit(1);
   }
 };

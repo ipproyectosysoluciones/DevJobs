@@ -1,4 +1,5 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose from "mongoose";
+const { Schema, Document } = mongoose;
 import bcrypt from "bcrypt";
 import type { IUsuario } from "../types/usuario.js";
 

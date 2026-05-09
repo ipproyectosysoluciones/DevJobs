@@ -1,4 +1,8 @@
 import dotenv from "dotenv";
+
+// Cargar variables de entorno ANTES de cualquier otro import
+dotenv.config({ path: ".env" });
+
 import mongoose from "mongoose";
 import express, { Request, Response, NextFunction } from "express";
 import exphbs from "express-handlebars";
@@ -12,7 +16,7 @@ import flash from "connect-flash";
 import createError from "http-errors";
 import passport from "./config/passport.js";
 
-dotenv.config({ path: ".env" });
+// Importar configuración de la base de datos
 import "./config/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,10 +24,13 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.engine("handlebars", exphbs({
-  defaultLayout: "layout",
-  helpers: (await import("./helpers/handlebars.js")).default,
-}));
+app.engine(
+  "handlebars",
+  exphbs({
+    defaultLayout: "layout",
+    helpers: (await import("./helpers/handlebars.js")).default,
+  })
+);
 app.set("view engine", "handlebars");
 
 app.use(express.static(path.join(__dirname, "public")));

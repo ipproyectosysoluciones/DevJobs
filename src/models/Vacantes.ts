@@ -1,4 +1,5 @@
-import mongoose, { Schema, Document, Types } from "mongoose";
+import mongoose from "mongoose";
+const { Schema, Document, Types } = mongoose;
 import slug from "slug";
 import shortid from "shortid";
 import type { IVacante } from "../types/vacante.js";
