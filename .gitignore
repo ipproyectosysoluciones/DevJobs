@@ -1,49 +1,91 @@
-# Dependencias
+# =======================
+# DEPENDENCIAS
+# =======================
 node_modules/
-package-lock.json
+pnpm-store/
 
-# Archivos de construcción
+# =======================
+# BUILD OUTPUT
+# =======================
 dist/
 build/
+*.tsbuildinfo
 
-# Archivos de ambiente
+# =======================
+# ROLLUP CACHE
+# =======================
+.rollup.cache/
+
+# =======================
+# ENTORNO
+# =======================
 .env
 .env.local
 .env.*.local
+# Pero mantener .env.example
+!.env.example
 
-# Logs
-logs
+# =======================
+# LOGS
+# =======================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Archivos del sistema
+# =======================
+# SISTEMA
+# =======================
 .DS_Store
 Thumbs.db
 
-# Directorios de IDE/Editores
+# =======================
+# IDE / EDITORES
+# =======================
 .idea/
 .vscode/
 *.swp
 *.swo
-*.sublime-workspace
-*.sublime-project
+*~
+.cache/
 
-# Archivos de cobertura
+# =======================
+# TESTING
+# =======================
 coverage/
 
-# Archivos temporales
+# =======================
+# TEMPORALES
+# =======================
 tmp/
 temp/
 
-# Archivos de carga
+# =======================
+# UPLOADS (excepto estructura)
+# =======================
 uploads/*
 !uploads/.gitkeep
 
-# Archivos de caché
-.cache/
-.npm/
+# =======================
+# HUSKY
+# =======================
+.husky/_/
 
-# Otros archivos específicos del proyecto
-config/config.json 
+# =======================
+# TSCONFIG
+# =======================
+tsconfig.tsbuildinfo
+
+# =======================
+# LOCK FILES (excepto pnpm)
+# =======================
+package-lock.json
+yarn.lock
+
+# =======================
+# OTROS
+# =======================
+server.log
+*.orig
