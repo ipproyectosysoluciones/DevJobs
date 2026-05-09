@@ -1,0 +1,377 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "DevJobs API",
+    "description": "API para el portal de empleo DevJobs - Job portal API for developers\n\n## Autenticación | Authentication\n- Sesiones con express-session\n- Passport.js para autenticación local\n\n## Tipos de usuario | User Types\n- **Público**: Puede buscar y ver vacantes\n- **Usuario autenticado**: Puede crear, editar y eliminar vacantes",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Bladimir Gerson Parra Bermudez"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Servidor de desarrollo | Development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Vacantes",
+      "description": "Operaciones con vacantes de trabajo | Job vacancy operations"
+    },
+    {
+      "name": "Usuarios",
+      "description": "Operaciones de usuario | User operations"
+    },
+    {
+      "name": "Auth",
+      "description": "Autenticación y sesiones | Authentication and sessions"
+    },
+    {
+      "name": "Búsqueda",
+      "description": "Búsqueda de vacantes | Job search"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["Vacantes"],
+        "summary": "Obtener todas las vacantes | Get all vacancies",
+        "description": "Retorna una lista de todas las vacantes disponibles | Returns a list of all available vacancies",
+        "responses": {
+          "200": {
+            "description": "Lista de vacantes | List of vacancies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Vacante"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vacantes/{url}": {
+      "get": {
+        "tags": ["Vacantes"],
+        "summary": "Obtener una vacante por URL | Get vacancy by URL",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "path",
+            "required": true,
+            "description": "URL única de la vacante | Unique vacancy URL",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles de la vacante | Vacancy details"
+          },
+          "404": {
+            "description": "Vacante no encontrada | Vacancy not found"
+          }
+        }
+      }
+    },
+    "/buscador": {
+      "post": {
+        "tags": ["Búsqueda"],
+        "summary": "Buscar vacantes | Search vacancies",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "q": {
+                    "type": "string",
+                    "description": "Texto de búsqueda | Search query"
+                  }
+                },
+                "required": ["q"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultados de búsqueda | Search results"
+          }
+        }
+      }
+    },
+    "/crear-cuenta": {
+      "get": {
+        "tags": ["Usuarios"],
+        "summary": "Mostrar formulario de registro | Show registration form"
+      },
+      "post": {
+        "tags": ["Usuarios"],
+        "summary": "Crear nueva cuenta | Create new account",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "description": "Nombre completo | Full name"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico | Email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Password"
+                  }
+                },
+                "required": ["nombre", "email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "302": {
+            "description": "Redirect a página de inicio de sesión | Redirect to sign in page"
+          }
+        }
+      }
+    },
+    "/iniciar-sesion": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Mostrar formulario de inicio de sesión | Show sign in form"
+      },
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Iniciar sesión | Sign in",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "302": {
+            "description": "Redirect a panel de administración | Redirect to admin panel"
+          }
+        }
+      }
+    },
+    "/administracion": {
+      "get": {
+        "tags": ["Vacantes"],
+        "summary": "Panel de administración | Administration panel",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Panel de administración | Admin panel"
+          },
+          "302": {
+            "description": "Redirect a login si no está autenticado | Redirect to login if not authenticated"
+          }
+        }
+      }
+    },
+    "/vacantes/nueva": {
+      "get": {
+        "tags": ["Vacantes"],
+        "summary": "Formulario para nueva vacante | New vacancy form",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Formulario de nueva vacante | New vacancy form"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Vacantes"],
+        "summary": "Crear nueva vacante | Create new vacancy",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titulo": {
+                    "type": "string",
+                    "description": "Título de la vacante | Job title"
+                  },
+                  "empresa": {
+                    "type": "string",
+                    "description": "Nombre de la empresa | Company name"
+                  },
+                  "ubicacion": {
+                    "type": "string",
+                    "description": "Ubicación | Location"
+                  },
+                  "salario": {
+                    "type": "string",
+                    "description": "Salario | Salary"
+                  },
+                  "contrato": {
+                    "type": "string",
+                    "description": "Tipo de contrato | Contract type"
+                  },
+                  "descripcion": {
+                    "type": "string",
+                    "description": "Descripción del puesto | Job description"
+                  },
+                  "skills": {
+                    "type": "string",
+                    "description": "Skills separados por coma | Skills separated by comma"
+                  }
+                },
+                "required": ["titulo", "empresa", "ubicacion", "contrato", "skills"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "302": {
+            "description": "Redirect a la vacante creada | Redirect to created vacancy"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Vacante": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string",
+            "description": "Título del puesto | Job title"
+          },
+          "empresa": {
+            "type": "string",
+            "description": "Nombre de la empresa | Company name"
+          },
+          "ubicacion": {
+            "type": "string",
+            "description": "Ubicación del trabajo | Job location"
+          },
+          "salario": {
+            "type": "string",
+            "description": "Salario ofrecido | Offered salary"
+          },
+          "contrato": {
+            "type": "string",
+            "description": "Tipo de contrato | Contract type"
+          },
+          "descripcion": {
+            "type": "string",
+            "description": "Descripción del puesto | Job description"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL única | Unique URL"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Skills requeridos | Required skills"
+          },
+          "candidatos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Candidato"
+            },
+            "description": "Candidatos aplicados | Applied candidates"
+          }
+        }
+      },
+      "Candidato": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "description": "Nombre del candidato | Candidate name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email del candidato | Candidate email"
+          },
+          "cv": {
+            "type": "string",
+            "description": "Nombre del archivo CV | CV filename"
+          }
+        }
+      },
+      "Usuario": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "description": "Nombre completo | Full name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Correo electrónico | Email"
+          },
+          "imagen": {
+            "type": "string",
+            "description": "URL de imagen de perfil | Profile image URL"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "connect.sid"
+      }
+    }
+  }
+}
