@@ -477,6 +477,88 @@
         }
       }
     },
+    "/api/analytics/events": {
+      "post": {
+        "tags": ["Analíticas"],
+        "summary": "Registrar evento | Track event",
+        "description": "Registra un evento de analítica | Tracks an analytics event",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["eventType"],
+                "properties": {
+                  "eventType": { "type": "string", "enum": ["page_view", "button_click", "form_submit", "search", "job_view", "job_apply", "user_register", "user_login", "chat_message", "donation", "error"] },
+                  "data": { "type": "object" },
+                  "metadata": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Evento registrado | Event tracked" }
+        }
+      }
+    },
+    "/api/analytics/dashboard": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Métricas del dashboard | Dashboard metrics",
+        "description": "Retorna métricas para el dashboard | Returns dashboard metrics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Métricas del dashboard | Dashboard metrics" }
+        }
+      }
+    },
+    "/api/analytics/users": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Métricas de usuarios | User metrics",
+        "description": "Retorna métricas de usuarios | Returns user metrics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Métricas de usuarios | User metrics" }
+        }
+      }
+    },
+    "/api/analytics/jobs": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Métricas de empleos | Job metrics",
+        "description": "Retorna métricas de empleos | Returns job metrics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Métricas de empleos | Job metrics" }
+        }
+      }
+    },
+    "/api/analytics/trends": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Tendencias de visitas | Visit trends",
+        "description": "Retorna tendencias de visitas | Returns visit trends",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Tendencias | Trends" }
+        }
+      }
+    },
+    "/api/analytics/report": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Reporte de analíticas | Analytics report",
+        "description": "Retorna un reporte completo | Returns a complete report",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Reporte | Report" }
+        }
+      }
+    },
     "/": {
       "get": {
         "tags": ["Vacantes"],
