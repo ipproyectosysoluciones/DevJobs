@@ -13,7 +13,7 @@ If you discover a security vulnerability in DevJobs, please report it privately.
 Si descubrís una vulnerabilidad de seguridad en DevJobs, por favor reportala de forma privada:
 
 1. **Do NOT** open a public issue — **NO** abras un issue público
-2. Send an email to **bladi.mir@outlook.com**
+2. Send an email to **ipproyectossoluciones@gmail.com**
 3. Include a description of the vulnerability and steps to reproduce
    — Incluí una descripción y pasos para reproducirla
 
