@@ -397,6 +397,86 @@
         }
       }
     },
+    "/api/donations/plans": {
+      "get": {
+        "tags": ["Donaciones"],
+        "summary": "Obtener planes de patrocinio | Get sponsorship plans",
+        "description": "Retorna los planes de donación disponibles | Returns available donation plans",
+        "responses": {
+          "200": { "description": "Lista de planes | Plans list" }
+        }
+      }
+    },
+    "/api/donations": {
+      "post": {
+        "tags": ["Donaciones"],
+        "summary": "Crear donación | Create donation",
+        "description": "Inicia el proceso de donación | Starts donation process",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["amount", "paymentMethod"],
+                "properties": {
+                  "amount": { "type": "number", "minimum": 1 },
+                  "currency": { "type": "string", "default": "USD" },
+                  "paymentMethod": { "type": "string", "enum": ["stripe", "paypal"] },
+                  "planId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Sesión de checkout | Checkout session" }
+        }
+      }
+    },
+    "/api/donations/me": {
+      "get": {
+        "tags": ["Donaciones"],
+        "summary": "Mis donaciones | My donations",
+        "description": "Retorna las donaciones del usuario actual | Returns current user's donations",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de donaciones | Donations list" }
+        }
+      }
+    },
+    "/api/donations/stats": {
+      "get": {
+        "tags": ["Donaciones"],
+        "summary": "Estadísticas de donaciones | Donations stats",
+        "description": "Retorna estadísticas de donaciones | Returns donation statistics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Estadísticas | Statistics" }
+        }
+      }
+    },
+    "/api/donations/webhooks/stripe": {
+      "post": {
+        "tags": ["Donaciones"],
+        "summary": "Webhook de Stripe | Stripe webhook",
+        "description": "Procesa eventos de Stripe | Processes Stripe events",
+        "responses": {
+          "200": { "description": "Webhook procesado | Webhook processed" }
+        }
+      }
+    },
+    "/api/donations/webhooks/paypal": {
+      "post": {
+        "tags": ["Donaciones"],
+        "summary": "Webhook de PayPal | PayPal webhook",
+        "description": "Procesa eventos de PayPal | Processes PayPal events",
+        "responses": {
+          "200": { "description": "Webhook procesado | Webhook processed" }
+        }
+      }
+    },
     "/": {
       "get": {
         "tags": ["Vacantes"],
