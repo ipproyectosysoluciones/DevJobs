@@ -1,0 +1,87 @@
+name: Bug Report
+description: Reportar un error / Report a bug
+title: "fix(scope): "
+labels: ["bug"]
+body:
+  - type: checkboxes
+    attributes:
+      label: Pre-flight Checks | Verificaciones
+      options:
+        - label: >
+            I searched existing issues and this is not a duplicate /
+            Busqué en issues existentes y esto no es un duplicado
+          required: true
+        - label: >
+            I can reproduce this bug consistently /
+            Puedo reproducir este error consistentemente
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Bug Description | Descripción del Error
+      description: >
+        Clear description of the bug / Descripción clara del error
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Steps to Reproduce | Pasos para Reproducir
+      placeholder: |
+        1. Go to /iniciar-sesion
+        2. Enter email and password
+        3. Click "Iniciar Sesión"
+        4. See error
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Expected Behavior | Comportamiento Esperado
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Actual Behavior | Comportamiento Actual
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Environment | Entorno
+      options:
+        - Development (localhost)
+        - Production
+        - Both
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Browser | Navegador
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Relevant Logs | Logs Relevantes
+      description: >
+        Copy output from the server console / Copiá la salida de la consola del servidor
+      render: shell
+
+  - type: textarea
+    attributes:
+      label: Additional Context | Contexto Adicional
+      description: Screenshots, workarounds, etc.
