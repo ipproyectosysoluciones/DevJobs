@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colores personalizados | Custom colors */
+  --color-primary: oklch(70% 0.2 250);
+  --color-primary-foreground: oklch(98% 0.02 250);
+  
+  --color-secondary: oklch(15% 0.02 250);
+  --color-secondary-foreground: oklch(98% 0.02 250);
+  
+  --color-accent: oklch(15% 0.05 250);
+  --color-accent-foreground: oklch(98% 0.02 250);
+  
+  --color-destructive: oklch(60% 0.18 25);
+  --color-destructive-foreground: oklch(98% 0.02 25);
+  
+  --color-muted: oklch(20% 0.02 250);
+  --color-muted-foreground: oklch(70% 0.02 250);
+  
+  --color-card: oklch(15% 0.02 250);
+  --color-card-foreground: oklch(98% 0.02 250);
+  
+  --color-popover: oklch(15% 0.02 250);
+  --color-popover-foreground: oklch(98% 0.02 250);
+  
+  --color-border: oklch(30% 0.02 250);
+  --color-input: oklch(30% 0.02 250);
+  --color-ring: oklch(70% 0.2 250);
+  
+  --color-success: oklch(75% 0.15 150);
+  --color-warning: oklch(75% 0.15 50);
+  --color-info: oklch(75% 0.15 220);
+  
+  /* Radio de bordes | Border radius */
+  --radius-sm: calc(0.5rem - 2px);
+  --radius-md: calc(0.75rem - 2px);
+  --radius-lg: calc(1rem - 2px);
+  --radius-xl: calc(1.5rem - 2px);
+}
+
+/*
+ * Estilos base | Base styles
+ * Diseño: Moderno, limpio, accesible
+ */
+:root {
+  --background: oklch(98% 0.01 250);
+  --foreground: oklch(15% 0.02 250);
+  
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--foreground);
+  background-color: var(--background);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Modo oscuro | Dark mode */
+.dark {
+  --background: oklch(15% 0.02 250);
+  --foreground: oklch(98% 0.02 250);
+}
+
+/* Reset básico | Basic reset */
+*, ::before, ::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: oklch(30% 0.02 250);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Transiciones suaves | Smooth transitions */
+* {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: ease-out-quart;
+  transition-duration: 150ms;
+}
+
+/* Focus visible | Focus visible */
+:focus-visible {
+  outline: 2px solid oklch(70% 0.2 250);
+  outline-offset: 2px;
+}
+
+/* Scrollbar personalizada | Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: oklch(20% 0.02 250);
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(40% 0.02 250);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(50% 0.02 250);
+}
