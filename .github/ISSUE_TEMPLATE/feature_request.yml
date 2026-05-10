@@ -1,0 +1,54 @@
+name: Feature Request
+description: Sugerir una funcionalidad / Suggest a feature
+title: "feat(scope): "
+labels: ["enhancement"]
+body:
+  - type: checkboxes
+    attributes:
+      label: Pre-flight Checks | Verificaciones
+      options:
+        - label: >
+            I searched existing issues and this is not a duplicate /
+            Busqué en issues existentes y esto no es un duplicado
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Problem Description | Descripción del Problema
+      description: >
+        What pain point does this solve? / ¿Qué problema resuelve?
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Proposed Solution | Solución Propuesta
+      description: >
+        How should it work from the user's perspective? /
+        ¿Cómo debería funcionar desde la perspectiva del usuario?
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Affected Area | Área Afectada
+      options:
+        - Frontend (views Handlebars)
+        - Backend (controllers/routes)
+        - Auth (passport/sessions)
+        - Database (models/queries)
+        - Documentation
+        - Email system
+        - Build / CI
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Alternatives Considered | Alternativas Consideradas
+
+  - type: textarea
+    attributes:
+      label: Additional Context | Contexto Adicional
+      description: Mockups, examples, references
