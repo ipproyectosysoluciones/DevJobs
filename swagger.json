@@ -39,21 +39,11 @@
     "/": {
       "get": {
         "tags": ["Vacantes"],
-        "summary": "Obtener todas las vacantes | Get all vacancies",
-        "description": "Retorna una lista de todas las vacantes disponibles | Returns a list of all available vacancies",
+        "summary": "Página principal - listar vacantes | Home page - list vacancies",
+        "description": "Renderiza la página principal con todas las vacantes disponibles | Renders the home page with all available vacancies",
         "responses": {
           "200": {
-            "description": "Lista de vacantes | List of vacancies",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Vacante"
-                  }
-                }
-              }
-            }
+            "description": "Página HTML con lista de vacantes | HTML page with vacancy list"
           }
         }
       }
@@ -61,7 +51,7 @@
     "/vacantes/{url}": {
       "get": {
         "tags": ["Vacantes"],
-        "summary": "Obtener una vacante por URL | Get vacancy by URL",
+        "summary": "Detalle de vacante por URL | Vacancy detail by URL",
         "parameters": [
           {
             "name": "url",
@@ -75,10 +65,56 @@
         ],
         "responses": {
           "200": {
-            "description": "Detalles de la vacante | Vacancy details"
+            "description": "Página HTML con detalle de la vacante | HTML page with vacancy details"
           },
           "404": {
             "description": "Vacante no encontrada | Vacancy not found"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Vacantes"],
+        "summary": "Postular a una vacante (enviar CV) | Apply to a vacancy (submit CV)",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "description": "Nombre del candidato | Candidate name"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email del candidato | Candidate email"
+                  },
+                  "cv": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Archivo PDF del CV | CV PDF file"
+                  }
+                },
+                "required": ["nombre", "email", "cv"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "302": {
+            "description": "Redirect a la página principal | Redirect to home page"
           }
         }
       }
@@ -86,7 +122,7 @@
     "/buscador": {
       "post": {
         "tags": ["Búsqueda"],
-        "summary": "Buscar vacantes | Search vacancies",
+        "summary": "Buscar vacantes por texto | Search vacancies by text",
         "requestBody": {
           "required": true,
           "content": {
@@ -106,7 +142,7 @@
         },
         "responses": {
           "200": {
-            "description": "Resultados de búsqueda | Search results"
+            "description": "Página HTML con resultados de búsqueda | HTML page with search results"
           }
         }
       }
@@ -114,11 +150,16 @@
     "/crear-cuenta": {
       "get": {
         "tags": ["Usuarios"],
-        "summary": "Mostrar formulario de registro | Show registration form"
+        "summary": "Formulario de registro | Registration form",
+        "responses": {
+          "200": {
+            "description": "Página HTML con formulario de registro | HTML page with registration form"
+          }
+        }
       },
       "post": {
         "tags": ["Usuarios"],
-        "summary": "Crear nueva cuenta | Create new account",
+        "summary": "Crear cuenta de usuario | Create user account",
         "requestBody": {
           "required": true,
           "content": {
@@ -139,16 +180,21 @@
                     "type": "string",
                     "format": "password",
                     "description": "Password"
+                  },
+                  "confirmar": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Confirmar password | Confirm password"
                   }
                 },
-                "required": ["nombre", "email", "password"]
+                "required": ["nombre", "email", "password", "confirmar"]
               }
             }
           }
         },
         "responses": {
           "302": {
-            "description": "Redirect a página de inicio de sesión | Redirect to sign in page"
+            "description": "Redirect a iniciar sesión | Redirect to sign in page"
           }
         }
       }
@@ -156,11 +202,16 @@
     "/iniciar-sesion": {
       "get": {
         "tags": ["Auth"],
-        "summary": "Mostrar formulario de inicio de sesión | Show sign in form"
+        "summary": "Formulario de inicio de sesión | Sign in form",
+        "responses": {
+          "200": {
+            "description": "Página HTML con formulario de login | HTML page with login form"
+          }
+        }
       },
       "post": {
         "tags": ["Auth"],
-        "summary": "Iniciar sesión | Sign in",
+        "summary": "Autenticar usuario | Authenticate user",
         "requestBody": {
           "required": true,
           "content": {
@@ -170,11 +221,13 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "format": "email"
+                    "format": "email",
+                    "description": "Correo electrónico | Email"
                   },
                   "password": {
                     "type": "string",
-                    "format": "password"
+                    "format": "password",
+                    "description": "Password"
                   }
                 },
                 "required": ["email", "password"]
@@ -184,7 +237,23 @@
         },
         "responses": {
           "302": {
-            "description": "Redirect a panel de administración | Redirect to admin panel"
+            "description": "Redirect a panel de administración (éxito) o formulario (error) | Redirect to admin panel (success) or form (error)"
+          }
+        }
+      }
+    },
+    "/cerrar-sesion": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Cerrar sesión | Sign out",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect a la página principal | Redirect to home page"
           }
         }
       }
@@ -192,7 +261,7 @@
     "/administracion": {
       "get": {
         "tags": ["Vacantes"],
-        "summary": "Panel de administración | Administration panel",
+        "summary": "Panel de administración | Admin panel",
         "security": [
           {
             "cookieAuth": []
@@ -200,10 +269,10 @@
         ],
         "responses": {
           "200": {
-            "description": "Panel de administración | Admin panel"
+            "description": "Página HTML del panel de administración | HTML admin panel page"
           },
           "302": {
-            "description": "Redirect a login si no está autenticado | Redirect to login if not authenticated"
+            "description": "Redirect a login si no autenticado | Redirect to login if not authenticated"
           }
         }
       }
@@ -211,7 +280,7 @@
     "/vacantes/nueva": {
       "get": {
         "tags": ["Vacantes"],
-        "summary": "Formulario para nueva vacante | New vacancy form",
+        "summary": "Formulario nueva vacante | New vacancy form",
         "security": [
           {
             "cookieAuth": []
@@ -219,7 +288,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Formulario de nueva vacante | New vacancy form"
+            "description": "Página HTML con formulario | HTML page with form"
           }
         }
       },
@@ -240,7 +309,7 @@
                 "properties": {
                   "titulo": {
                     "type": "string",
-                    "description": "Título de la vacante | Job title"
+                    "description": "Título del puesto | Job title"
                   },
                   "empresa": {
                     "type": "string",
@@ -275,6 +344,319 @@
         "responses": {
           "302": {
             "description": "Redirect a la vacante creada | Redirect to created vacancy"
+          }
+        }
+      }
+    },
+    "/vacantes/editar/{url}": {
+      "get": {
+        "tags": ["Vacantes"],
+        "summary": "Formulario editar vacante | Edit vacancy form",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "url",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "URL de la vacante a editar | Vacancy URL to edit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página HTML con formulario de edición | HTML page with edit form"
+          },
+          "404": {
+            "description": "Vacante no encontrada | Vacancy not found"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Vacantes"],
+        "summary": "Actualizar vacante | Update vacancy",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "url",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "URL de la vacante a editar | Vacancy URL to edit"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titulo": {
+                    "type": "string"
+                  },
+                  "empresa": {
+                    "type": "string"
+                  },
+                  "ubicacion": {
+                    "type": "string"
+                  },
+                  "salario": {
+                    "type": "string"
+                  },
+                  "contrato": {
+                    "type": "string"
+                  },
+                  "descripcion": {
+                    "type": "string"
+                  },
+                  "skills": {
+                    "type": "string",
+                    "description": "Skills separados por coma | Skills separated by comma"
+                  }
+                },
+                "required": ["titulo", "empresa", "ubicacion", "contrato", "skills"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "302": {
+            "description": "Redirect a la vacante actualizada | Redirect to updated vacancy"
+          }
+        }
+      }
+    },
+    "/vacantes/eliminar/{id}": {
+      "delete": {
+        "tags": ["Vacantes"],
+        "summary": "Eliminar vacante | Delete vacancy",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la vacante a eliminar | Vacancy ID to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vacante eliminada | Vacancy deleted"
+          },
+          "403": {
+            "description": "No autorizado (no eres el autor) | Unauthorized (not the author)"
+          }
+        }
+      }
+    },
+    "/candidatos/{id}": {
+      "get": {
+        "tags": ["Vacantes"],
+        "summary": "Ver candidatos de una vacante | View vacancy candidates",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la vacante | Vacancy ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página HTML con lista de candidatos | HTML page with candidates list"
+          },
+          "404": {
+            "description": "Vacante no encontrada | Vacancy not found"
+          }
+        }
+      }
+    },
+    "/reestablecer-password": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Formulario solicitar reset de password | Request password reset form",
+        "responses": {
+          "200": {
+            "description": "Página HTML con formulario | HTML page with form"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Enviar token de reset por email | Send reset token by email",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email del usuario | User email"
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "302": {
+            "description": "Redirect con mensaje de confirmación | Redirect with confirmation message"
+          }
+        }
+      }
+    },
+    "/reestablecer-password/{token}": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Formulario para nuevo password | New password form",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de reset | Reset token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página HTML con formulario de nuevo password | HTML page with new password form"
+          },
+          "302": {
+            "description": "Redirect si el token es inválido | Redirect if token is invalid"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Guardar nuevo password | Save new password",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de reset | Reset token"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Nuevo password | New password"
+                  },
+                  "confirmar": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Confirmar nuevo password | Confirm new password"
+                  }
+                },
+                "required": ["password", "confirmar"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "302": {
+            "description": "Redirect a iniciar sesión | Redirect to sign in"
+          }
+        }
+      }
+    },
+    "/editar-perfil": {
+      "get": {
+        "tags": ["Usuarios"],
+        "summary": "Formulario editar perfil | Edit profile form",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página HTML con formulario de edición | HTML page with edit form"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Usuarios"],
+        "summary": "Actualizar perfil de usuario | Update user profile",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "description": "Nombre completo | Full name"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico | Email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Nuevo password (opcional) | New password (optional)"
+                  },
+                  "imagen": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Imagen de perfil (JPEG/PNG) | Profile image (JPEG/PNG)"
+                  }
+                },
+                "required": ["nombre", "email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "302": {
+            "description": "Redirect a panel de administración | Redirect to admin panel"
           }
         }
       }
