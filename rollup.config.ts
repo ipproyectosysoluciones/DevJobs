@@ -4,19 +4,13 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import terser from "@rollup/plugin-terser";
 
-/**
- * Configuración de Rollup para producción
- * @en Rollup configuration for production builds
- * @es Configuración de Rollup para compilación de producción
- */
 export default defineConfig({
   input: "src/index.ts",
   output: {
     dir: "dist",
     format: "esm",
-    sourcemap: true,
     entryFileNames: "[name].js",
-    chunkFileNames: "[name]-[hash].js",
+    sourcemap: false,
   },
   plugins: [
     resolve({
@@ -25,23 +19,25 @@ export default defineConfig({
     commonjs(),
     typescript({
       tsconfig: "./tsconfig.json",
-      declaration: true,
-      declarationDir: "./dist/types",
+      declaration: false,
+      noEmit: false,
+      outDir: "dist",
     }),
-    terser(),
+    terser({
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+      mangle: true,
+      format: {
+        comments: false,
+      },
+    }),
   ],
-  external: [
-    "express",
-    "mongoose",
-    "passport",
-    "connect-mongo",
-    "cookie-parser",
-    "express-session",
-    "body-parser",
-    "express-validator",
-    "connect-flash",
-    "http-errors",
-    "nodemailer",
-    "dotenv",
-  ],
+  external: [],
+  onwarn(warning, warn) {
+    if (warning.code === "CIRCULAR_DEPENDENCY") return;
+    if (warning.code === "THIS_IS_UNDEFINED") return;
+    warn(warning);
+  },
 });

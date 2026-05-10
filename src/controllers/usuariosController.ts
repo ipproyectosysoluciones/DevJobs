@@ -3,7 +3,7 @@ import multer, { MulterError } from "multer";
 import shortid from "shortid";
 import path from "path";
 import { fileURLToPath } from "url";
-import type { IUsuarioDocument } from "../models/Usuarios.js";
+import type { IUsuarioDocument } from "../models/Usuarios";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -152,7 +152,7 @@ export const formEditarPerfil = (req: Request, res: Response): void => {
  */
 export const editarPerfil = async (req: Request, res: Response): Promise<void> => {
   const Usuario = (await import("../models/Usuarios.js")).default;
-  const usuario = await Usuario.findById<IUsuarioDocument>(req.user?._id);
+  const usuario = await Usuario.findById(req.user?._id);
 
   if (usuario) {
     usuario.nombre = req.body.nombre;

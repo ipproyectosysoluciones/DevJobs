@@ -1,33 +1,41 @@
-import mongoose from "mongoose";
-const { Schema, Document, Types } = mongoose;
+import mongoose, { Schema, model, type Document, type Types } from "mongoose";
 import slug from "slug";
 import shortid from "shortid";
-import type { IVacante } from "../types/vacante.js";
+
+/**
+ * Interfaz de candidato
+ */
+interface ICandidato {
+  nombre: string;
+  email: string;
+  cv: string;
+}
 
 /**
  * Interfaz del documento Vacante
- * @en Vacante mongoose document interface
  */
-export interface IVacanteDocument extends Omit<IVacante, "autor" | "candidatos">, Document {
+export interface IVacanteDocument extends Document {
+  titulo: string;
+  empresa: string;
+  ubicacion: string;
+  salario?: string;
+  contrato?: string;
+  descripcion?: string;
+  url: string;
+  skills: string[];
+  candidatos: ICandidato[];
   autor: Types.ObjectId;
-  candidatos: Array<{
-    nombre: string;
-    email: string;
-    cv: string;
-  }>;
-  /** Generate URL slug from title / Generar slug URL desde el título */
-  preSave: (next: mongoose.HookNextFunction) => Promise<void>;
+  nombreCompleto: string;
 }
 
 /**
  * Esquema de Mongoose para Vacantes
- * @en Mongoose schema for job vacancies
  */
 const vacantesSchema = new Schema<IVacanteDocument>(
   {
     titulo: {
       type: String,
-      required: "El nombre de la vacante es obligatorio | Job title is required",
+      required: "El nombre de la vacante es obligatorio",
       trim: true,
     },
     empresa: {
@@ -37,11 +45,11 @@ const vacantesSchema = new Schema<IVacanteDocument>(
     ubicacion: {
       type: String,
       trim: true,
-      required: "La ubicación es obligatoria | Location is required",
+      required: "La ubicación es obligatoria",
     },
     salario: {
       type: String,
-      default: 0,
+      default: "0",
       trim: true,
     },
     contrato: {
@@ -71,7 +79,7 @@ const vacantesSchema = new Schema<IVacanteDocument>(
     autor: {
       type: Schema.Types.ObjectId,
       ref: "Usuarios",
-      required: "El autor es obligatorio | Author is required",
+      required: "El autor es obligatorio",
     },
   },
   {
@@ -82,10 +90,8 @@ const vacantesSchema = new Schema<IVacanteDocument>(
 
 /**
  * Middleware para crear URL antes de guardar
- * @en Middleware to create URL before saving
  */
-vacantesSchema.pre("save", async function (next): Promise<void> {
-  // crear la url / create the url
+vacantesSchema.pre("save", async function (next) {
   const url = slug(this.titulo);
   this.url = `${url}-${shortid.generate()}`;
   next();
@@ -93,24 +99,21 @@ vacantesSchema.pre("save", async function (next): Promise<void> {
 
 /**
  * Crear índice de texto para búsqueda
- * @en Create text index for search
  */
 vacantesSchema.index({ titulo: "text" });
 
 /**
  * Validar formato de URL
- * @en Validate URL format
  */
 const validarURL = (url: string): boolean => {
   const regex = /^[a-zA-Z0-9-]+$/;
   return regex.test(url);
 };
 
-vacantesSchema.path("url").validate(validarURL, "URL no válida | Invalid URL");
+vacantesSchema.path("url").validate(validarURL, "URL no válida");
 
 /**
  * Virtual para nombre completo (empresa - título)
- * @en Virtual for full name (company - title)
  */
 vacantesSchema.virtual("nombreCompleto").get(function (): string {
   return `${this.empresa} - ${this.titulo}`;
@@ -118,8 +121,7 @@ vacantesSchema.virtual("nombreCompleto").get(function (): string {
 
 /**
  * Exportar el modelo de Vacante
- * @en Export Vacante model
  */
-const Vacante = mongoose.model<IVacanteDocument>("Vacante", vacantesSchema);
+const Vacante = model<IVacanteDocument>("Vacante", vacantesSchema);
 
 export default Vacante;

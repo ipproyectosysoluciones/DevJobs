@@ -1,11 +1,9 @@
-import mongoose from "mongoose";
-const { Schema, Document } = mongoose;
-import bcrypt from "bcrypt";
+import mongoose, { Schema, type Document } from "mongoose";
+import bcrypt from "bcryptjs";
 import type { IUsuario } from "../types/usuario.js";
 
 /**
  * Interfaz del documento Usuario
- * @en Usuario mongoose document interface
  */
 export interface IUsuarioDocument extends IUsuario, Document {
   /** Comparar password ingresada con el hash guardado / Compare input password with stored hash */

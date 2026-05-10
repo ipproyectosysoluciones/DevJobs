@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 import hbs from "nodemailer-express-handlebars";
 import { fileURLToPath } from "url";
 import path from "path";
-import emailConfig from "../config/email.js";
+import emailConfig from "../config/email";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,7 +34,8 @@ const handlebarOptions = {
   extName: ".handlebars",
 };
 
-transport.use("compile", hbs(handlebarOptions as any));
+// @ts-expect-error - nodemailer-express-handlebars types mismatch
+transport.use("compile", hbs(handlebarOptions));
 
 export const enviar = async (opciones: EmailOptions): Promise<void> => {
   const opcionesEmail = {

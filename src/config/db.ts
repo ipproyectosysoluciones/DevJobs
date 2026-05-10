@@ -1,31 +1,19 @@
 import mongoose from "mongoose";
 
 /**
- * Conectar a MongoDB
- * @en Connect to MongoDB
+ * Conectar a MongoDB (Mongoose 8+)
  */
 const conectarDB = async (): Promise<void> => {
   try {
     const mongoUri = process.env.MONGODB_URI ?? "mongodb://localhost:27017/devjobs";
     
-    await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
+    await mongoose.connect(mongoUri);
+    mongoose.set("strictQuery", true);
     
-    console.log("Base de datos conectada | Database connected");
-    
-    // Manejar eventos de conexión
-    mongoose.connection.on("error", (err) => {
-      console.error("MongoDB connection error:", err);
-    });
-    
-    mongoose.connection.on("disconnected", () => {
-      console.log("MongoDB disconnected");
-    });
+    console.log("✅ Base de datos conectada");
     
   } catch (error) {
-    console.log("Error al conectar a MongoDB:", error);
+    console.error("❌ Error al conectar a MongoDB:", error);
     process.exit(1);
   }
 };

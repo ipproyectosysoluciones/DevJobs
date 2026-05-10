@@ -28,14 +28,14 @@ export const mostrarAlertas = (errores: Record<string, string[]> = {}, alertas: 
   const categoria = Object.keys(errores);
 
   if (!categoria.length) {
-    return alertas.fn(this).html = "";
+    return "";
   }
 
   const html = categoria
     .flatMap((cat) => errores[cat].map((error) => `<div class="${cat} alerta">${error}</div>`))
     .join("");
 
-  return alertas.fn(this).html = html;
+  return html;
 };
 
 export default {

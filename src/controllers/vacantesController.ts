@@ -3,7 +3,7 @@ import multer, { MulterError } from "multer";
 import shortid from "shortid";
 import path from "path";
 import { fileURLToPath } from "url";
-import type { IVacanteDocument } from "../models/Vacantes.js";
+import type { IVacanteDocument } from "../models/Vacantes";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,7 +75,7 @@ export const mostrarVacante = async (
   next: NextFunction
 ): Promise<void> => {
   const Vacante = (await import("../models/Vacantes.js")).default;
-  const vacante = await Vacante.findOne<IVacanteDocument>({
+  const vacante = await Vacante.findOne({
     url: req.params.url,
   }).populate("autor");
 
@@ -100,7 +100,7 @@ export const formEditarVacante = async (
   next: NextFunction
 ): Promise<void> => {
   const Vacante = (await import("../models/Vacantes.js")).default;
-  const vacante = await Vacante.findOne<IVacanteDocument>({
+  const vacante = await Vacante.findOne({
     url: req.params.url,
   });
 
@@ -247,7 +247,7 @@ export const contactar = async (
   next: NextFunction
 ): Promise<void> => {
   const Vacante = (await import("../models/Vacantes.js")).default;
-  const vacante = await Vacante.findOne<IVacanteDocument>({
+  const vacante = await Vacante.findOne({
     url: req.params.url,
   });
 
@@ -304,7 +304,7 @@ export const mostrarCandidatos = async (
  */
 export const buscarVacantes = async (req: Request, res: Response): Promise<void> => {
   const Vacante = (await import("../models/Vacantes.js")).default;
-  const vacantes = await Vacante.find<IVacanteDocument>({
+  const vacantes = await Vacante.find({
     $text: {
       $search: req.body.q,
     },

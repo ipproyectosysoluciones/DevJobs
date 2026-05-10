@@ -1,28 +1,36 @@
 import dotenv from "dotenv";
 
+// Manejo de errores no捕获ados
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("❌ Unhandled Rejection:", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("❌ Uncaught Exception:", err);
+  process.exit(1);
+});
+
 // Cargar variables de entorno ANTES de cualquier otro import
 dotenv.config({ path: ".env" });
 
-import mongoose from "mongoose";
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction, type Express } from "express";
 import exphbs from "express-handlebars";
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
 import session from "express-session";
-import bodyParser from "body-parser";
-import expressValidator from "express-validator";
 import flash from "connect-flash";
 import createError from "http-errors";
 import passport from "./config/passport.js";
+import { body, validationResult } from "express-validator";
 
 // Importar configuración de la base de datos
-import "./config/db.js";
+import conectarDB from "./config/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
+const app: Express = express();
 
 app.engine(
   "handlebars",
@@ -32,11 +40,11 @@ app.engine(
   })
 );
 app.set("view engine", "handlebars");
+app.set("views", path.join(__dirname, "views"));
 
 app.use(express.static(path.join(__dirname, "public")));
-app.use(expressValidator());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,6 +57,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
+await conectarDB();
 
 app.use((req: Request, res: Response, next: NextFunction): void => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,6 +80,14 @@ app.use((error: { message: string; status?: number }, _req: Request, res: Respon
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
+const server = app.listen(PORT, () => console.log(`✅ Servidor en puerto ${PORT}`));
+
+server.on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(`❌ Puerto ${PORT} en uso`);
+  } else {
+    console.error("❌ Error del servidor:", err);
+  }
+});
 
 export default app;
