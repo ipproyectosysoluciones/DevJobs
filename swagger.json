@@ -53,6 +53,10 @@
     {
       "name": "Analíticas",
       "description": "Analíticas y métricas | Analytics and metrics"
+    },
+    {
+      "name": "LinkedIn",
+      "description": "Integración con LinkedIn | LinkedIn integration"
     }
   ],
   "paths": {
@@ -394,6 +398,255 @@
         "security": [{ "BearerAuth": [] }],
         "responses": {
           "200": { "description": "Lista de postulaciones | Applications list" }
+        }
+      }
+    },
+    "/api/donations/plans": {
+      "get": {
+        "tags": ["Donaciones"],
+        "summary": "Obtener planes de patrocinio | Get sponsorship plans",
+        "description": "Retorna los planes de donación disponibles | Returns available donation plans",
+        "responses": {
+          "200": { "description": "Lista de planes | Plans list" }
+        }
+      }
+    },
+    "/api/donations": {
+      "post": {
+        "tags": ["Donaciones"],
+        "summary": "Crear donación | Create donation",
+        "description": "Inicia el proceso de donación | Starts donation process",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["amount", "paymentMethod"],
+                "properties": {
+                  "amount": { "type": "number", "minimum": 1 },
+                  "currency": { "type": "string", "default": "USD" },
+                  "paymentMethod": { "type": "string", "enum": ["stripe", "paypal"] },
+                  "planId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Sesión de checkout | Checkout session" }
+        }
+      }
+    },
+    "/api/donations/me": {
+      "get": {
+        "tags": ["Donaciones"],
+        "summary": "Mis donaciones | My donations",
+        "description": "Retorna las donaciones del usuario actual | Returns current user's donations",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de donaciones | Donations list" }
+        }
+      }
+    },
+    "/api/donations/stats": {
+      "get": {
+        "tags": ["Donaciones"],
+        "summary": "Estadísticas de donaciones | Donations stats",
+        "description": "Retorna estadísticas de donaciones | Returns donation statistics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Estadísticas | Statistics" }
+        }
+      }
+    },
+    "/api/donations/webhooks/stripe": {
+      "post": {
+        "tags": ["Donaciones"],
+        "summary": "Webhook de Stripe | Stripe webhook",
+        "description": "Procesa eventos de Stripe | Processes Stripe events",
+        "responses": {
+          "200": { "description": "Webhook procesado | Webhook processed" }
+        }
+      }
+    },
+    "/api/donations/webhooks/paypal": {
+      "post": {
+        "tags": ["Donaciones"],
+        "summary": "Webhook de PayPal | PayPal webhook",
+        "description": "Procesa eventos de PayPal | Processes PayPal events",
+        "responses": {
+          "200": { "description": "Webhook procesado | Webhook processed" }
+        }
+      }
+    },
+    "/api/analytics/events": {
+      "post": {
+        "tags": ["Analíticas"],
+        "summary": "Registrar evento | Track event",
+        "description": "Registra un evento de analítica | Tracks an analytics event",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["eventType"],
+                "properties": {
+                  "eventType": { "type": "string", "enum": ["page_view", "button_click", "form_submit", "search", "job_view", "job_apply", "user_register", "user_login", "chat_message", "donation", "error"] },
+                  "data": { "type": "object" },
+                  "metadata": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Evento registrado | Event tracked" }
+        }
+      }
+    },
+    "/api/analytics/dashboard": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Métricas del dashboard | Dashboard metrics",
+        "description": "Retorna métricas para el dashboard | Returns dashboard metrics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Métricas del dashboard | Dashboard metrics" }
+        }
+      }
+    },
+    "/api/analytics/users": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Métricas de usuarios | User metrics",
+        "description": "Retorna métricas de usuarios | Returns user metrics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Métricas de usuarios | User metrics" }
+        }
+      }
+    },
+    "/api/analytics/jobs": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Métricas de empleos | Job metrics",
+        "description": "Retorna métricas de empleos | Returns job metrics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Métricas de empleos | Job metrics" }
+        }
+      }
+    },
+    "/api/analytics/trends": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Tendencias de visitas | Visit trends",
+        "description": "Retorna tendencias de visitas | Returns visit trends",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Tendencias | Trends" }
+        }
+      }
+    },
+    "/api/analytics/report": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Reporte de analíticas | Analytics report",
+        "description": "Retorna un reporte completo | Returns a complete report",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Reporte | Report" }
+        }
+      }
+    },
+    "/api/linkedin/auth": {
+      "get": {
+        "tags": ["LinkedIn"],
+        "summary": "Iniciar OAuth de LinkedIn | Start LinkedIn OAuth",
+        "description": "Genera la URL de autorización de LinkedIn | Generates LinkedIn authorization URL",
+        "responses": {
+          "200": { "description": "URL de autorización | Authorization URL" }
+        }
+      }
+    },
+    "/api/linkedin/callback": {
+      "get": {
+        "tags": ["LinkedIn"],
+        "summary": "Callback de OAuth | OAuth callback",
+        "description": "Maneja el callback de LinkedIn OAuth | Handles LinkedIn OAuth callback",
+        "parameters": [
+          { "name": "code", "in": "query", "schema": { "type": "string" } },
+          { "name": "state", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "302": { "description": "Redirección | Redirect" }
+        }
+      }
+    },
+    "/api/linkedin/profile": {
+      "get": {
+        "tags": ["LinkedIn"],
+        "summary": "Obtener perfil de LinkedIn | Get LinkedIn profile",
+        "description": "Retorna el perfil de LinkedIn vinculado | Returns linked LinkedIn profile",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Perfil de LinkedIn | LinkedIn profile" }
+        }
+      }
+    },
+    "/api/linkedin/sync": {
+      "post": {
+        "tags": ["LinkedIn"],
+        "summary": "Sincronizar perfil | Sync profile",
+        "description": "Sincroniza los datos del perfil de LinkedIn | Synchronizes LinkedIn profile data",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Perfil sincronizado | Profile synced" }
+        }
+      }
+    },
+    "/api/linkedin/disconnect": {
+      "post": {
+        "tags": ["LinkedIn"],
+        "summary": "Desvincular LinkedIn | Disconnect LinkedIn",
+        "description": "Desvincula la cuenta de LinkedIn | Unlinks LinkedIn account",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Cuenta desvinculada | Account unlinked" }
+        }
+      }
+    },
+    "/api/linkedin/jobs": {
+      "get": {
+        "tags": ["LinkedIn"],
+        "summary": "Buscar empleos en LinkedIn | Search LinkedIn jobs",
+        "description": "Busca empleos en LinkedIn | Searches jobs on LinkedIn",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "keyword", "in": "query", "schema": { "type": "string" } },
+          { "name": "location", "in": "query", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }
+        ],
+        "responses": {
+          "200": { "description": "Lista de empleos | Jobs list" }
+        }
+      }
+    },
+    "/api/linkedin/jobs/{jobId}": {
+      "get": {
+        "tags": ["LinkedIn"],
+        "summary": "Obtener empleo de LinkedIn | Get LinkedIn job",
+        "description": "Retorna detalles de un empleo específico | Returns specific job details",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "jobId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Detalles del empleo | Job details" }
         }
       }
     },
