@@ -197,6 +197,206 @@
         }
       }
     },
+    "/api/jobs": {
+      "get": {
+        "tags": ["Empleos"],
+        "summary": "Obtener lista de empleos | Get jobs list",
+        "description": "Retorna lista de empleos con filtros y paginación | Returns jobs list with filters and pagination",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Texto de búsqueda | Search text"
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Ciudad | City"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "País | Country"
+          },
+          {
+            "name": "remote",
+            "in": "query",
+            "schema": { "type": "boolean" },
+            "description": "Solo remotos | Remote only"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["full-time", "part-time", "contract", "internship", "freelance"] },
+            "description": "Tipo de empleo | Job type"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 },
+            "description": "Página | Page"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 10 },
+            "description": "Límite por página | Limit per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de empleos | Jobs list"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Empleos"],
+        "summary": "Crear nuevo empleo | Create new job",
+        "description": "Crea una nueva vacante de empleo | Creates a new job vacancy",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "description", "requirements"],
+                "properties": {
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "requirements": { "type": "array", "items": { "type": "string" } },
+                  "location": {
+                    "type": "object",
+                    "properties": {
+                      "city": { "type": "string" },
+                      "country": { "type": "string" },
+                      "remote": { "type": "boolean" }
+                    }
+                  },
+                  "salary": {
+                    "type": "object",
+                    "properties": {
+                      "min": { "type": "number" },
+                      "max": { "type": "number" },
+                      "currency": { "type": "string" }
+                    }
+                  },
+                  "type": { "type": "string", "enum": ["full-time", "part-time", "contract", "internship", "freelance"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Empleo creado | Job created" },
+          "401": { "description": "No autenticado | Not authenticated" }
+        }
+      }
+    },
+    "/api/jobs/{id}": {
+      "get": {
+        "tags": ["Empleos"],
+        "summary": "Obtener empleo por ID | Get job by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del empleo | Job ID"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Empleo encontrado | Job found" },
+          "404": { "description": "Empleo no encontrado | Job not found" }
+        }
+      },
+      "put": {
+        "tags": ["Empleos"],
+        "summary": "Actualizar empleo | Update job",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Empleo actualizado | Job updated" },
+          "403": { "description": "No autorizado | Not authorized" }
+        }
+      },
+      "delete": {
+        "tags": ["Empleos"],
+        "summary": "Eliminar empleo | Delete job",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Empleo eliminado | Job deleted" },
+          "403": { "description": "No autorizado | Not authorized" }
+        }
+      }
+    },
+    "/api/jobs/{id}/apply": {
+      "post": {
+        "tags": ["Empleos"],
+        "summary": "Aplicar a empleo | Apply to job",
+        "description": "Postula a un empleo existente | Applies to an existing job",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "coverLetter": { "type": "string" },
+                  "resume": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Postulación exitosa | Application successful" },
+          "400": { "description": "Ya aplicaste | Already applied" }
+        }
+      }
+    },
+    "/api/applications/me": {
+      "get": {
+        "tags": ["Empleos"],
+        "summary": "Mis postulaciones | My applications",
+        "description": "Retorna las postulaciones del usuario actual | Returns current user's applications",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de postulaciones | Applications list" }
+        }
+      }
+    },
     "/": {
       "get": {
         "tags": ["Vacantes"],
