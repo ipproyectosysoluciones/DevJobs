@@ -31,7 +31,7 @@ export const verificarUsuario = (req: Request, res: Response, next: () => void):
 export const mostrarPanel = async (req: Request, res: Response): Promise<void> => {
   const Vacante = (await import("../models/Vacantes.js")).default;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const vacantes = await Vacante.find({ autor: (req.user as any)?._id });
+  const vacantes = await Vacante.find({ autor: (req.user as any)?._id }).lean();
 
   res.render("administracion", {
     nombrePagina: "Panel de Administración",

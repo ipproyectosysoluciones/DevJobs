@@ -3,6 +3,7 @@ import multer, { MulterError } from "multer";
 import shortid from "shortid";
 import path from "path";
 import { fileURLToPath } from "url";
+import { body, validationResult } from "express-validator";
 import type { IUsuarioDocument } from "../models/Usuarios";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -73,38 +74,36 @@ export const formCrearCuenta = (req: Request, res: Response): void => {
  * Validar datos de registro
  * @en Validate registration data
  */
-export const validarRegistro = (req: Request, res: Response, next: NextFunction): void => {
-  // Sanitizar | Sanitize
-  req.sanitizeBody("nombre").escape();
-  req.sanitizeBody("email").escape();
-  req.sanitizeBody("password").escape();
-  req.sanitizeBody("confirmar").escape();
+export const validarRegistro = [
+  // Sanitizar y validar | Sanitize and validate
+  body("nombre").trim().escape().notEmpty().withMessage("El Nombre es Obligatorio | Name is Required"),
+  body("email").trim().escape().isEmail().withMessage("El email debe ser válido | Email must be valid"),
+  body("password").notEmpty().withMessage("El password no puede ir vacío | Password cannot be empty"),
+  body("confirmar")
+    .notEmpty().withMessage("Confirmar password no puede ir vacío | Confirm password cannot be empty")
+    .custom((value, { req }) => value === req?.body.password)
+    .withMessage("El password es diferente | Password is different"),
 
-  // Validar | Validate
-  req.checkBody("nombre", "El Nombre es Obligatorio | Name is Required").notEmpty();
-  req.checkBody("email", "El email debe ser válido | Email must be valid").isEmail();
-  req.checkBody("password", "El password no puede ir vacío | Password cannot be empty").notEmpty();
-  req.checkBody("confirmar", "Confirmar password no puede ir vacío | Confirm password cannot be empty").notEmpty();
-  req.checkBody("confirmar", "El password es diferente | Password is different").equals(req.body.password);
+  // Handler de errores | Error handler
+  (req: Request, res: Response, next: NextFunction): void => {
+    const errores = validationResult(req);
 
-  const errores = req.validationErrors();
+    if (!errores.isEmpty()) {
+      req.flash(
+        "error",
+        errores.array().map((error) => error.msg)
+      );
+      res.render("crear-cuenta", {
+        nombrePagina: "Crea tu cuenta en devJobs | Create your account on devJobs",
+        tagline: "Comienza a publicar tus vacantes gratis, solo debes crear una cuenta",
+        mensajes: req.flash(),
+      });
+      return;
+    }
 
-  if (errores) {
-    req.flash(
-      "error",
-      errores.map((error) => error.msg)
-    );
-    res.render("crear-cuenta", {
-      nombrePagina: "Crea tu cuenta en devJobs | Create your account on devJobs",
-      tagline: "Comienza a publicar tus vacantes gratis, solo debes crear una cuenta",
-      mensajes: req.flash(),
-    });
-    return;
-  }
-
-  // Si toda la validación es correcta | If all validation is correct
-  next();
-};
+    next();
+  },
+];
 
 /**
  * Crear nuevo usuario
@@ -176,34 +175,31 @@ export const editarPerfil = async (req: Request, res: Response): Promise<void> =
  * Validar datos del perfil
  * @en Validate profile data
  */
-export const validarPerfil = (req: Request, res: Response, next: NextFunction): void => {
-  // Sanitizar | Sanitize
-  req.sanitizeBody("nombre").escape();
-  req.sanitizeBody("email").escape();
-  if (req.body.password) {
-    req.sanitizeBody("password").escape();
-  }
+export const validarPerfil = [
+  // Sanitizar y validar | Sanitize and validate
+  body("nombre").trim().escape().notEmpty().withMessage("El nombre no puede ir vacío | Name cannot be empty"),
+  body("email").trim().escape().notEmpty().withMessage("El correo no puede ir vacío | Email cannot be empty"),
+  body("password").optional().trim().escape(),
 
-  // Validar | Validate
-  req.checkBody("nombre", "El nombre no puede ir vacío | Name cannot be empty").notEmpty();
-  req.checkBody("email", "El correo no puede ir vacío | Email cannot be empty").notEmpty();
+  // Handler de errores | Error handler
+  (req: Request, res: Response, next: NextFunction): void => {
+    const errores = validationResult(req);
 
-  const errores = req.validationErrors();
-
-  if (errores) {
-    req.flash(
-      "error",
-      errores.map((error) => error.msg)
-    );
-    res.render("editar-perfil", {
-      nombrePagina: "Edita tu perfil en devJobs | Edit your profile on devJobs",
-      usuario: req.user,
-      cerrarSesion: true,
-      nombre: req.user?.nombre,
-      imagen: req.user?.imagen,
-      mensajes: req.flash(),
-    });
-    return;
-  }
-  next();
-};
+    if (!errores.isEmpty()) {
+      req.flash(
+        "error",
+        errores.array().map((error) => error.msg)
+      );
+      res.render("editar-perfil", {
+        nombrePagina: "Edita tu perfil en devJobs | Edit your profile on devJobs",
+        usuario: req.user,
+        cerrarSesion: true,
+        nombre: req.user?.nombre,
+        imagen: req.user?.imagen,
+        mensajes: req.flash(),
+      });
+      return;
+    }
+    next();
+  },
+];

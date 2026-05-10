@@ -25,7 +25,9 @@ declare global {
      */
     interface Request {
       user?: User;
-      flash?(type: string, message?: string): any;
+      flash(): { [key: string]: string[] };
+      flash(type: string): string[];
+      flash(type: string, message: string | string[]): any;
     }
   }
 }

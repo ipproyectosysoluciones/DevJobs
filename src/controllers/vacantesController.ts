@@ -1,9 +1,10 @@
-import { Request, Response, NextFunction } from "express";
-import multer, { MulterError } from "multer";
-import shortid from "shortid";
-import path from "path";
-import { fileURLToPath } from "url";
-import type { IVacanteDocument } from "../models/Vacantes";
+import { Request, Response, NextFunction } from 'express';
+import multer, { MulterError } from 'multer';
+import shortid from 'shortid';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { body, validationResult } from 'express-validator';
+import type { IVacanteDocument } from '../models/Vacantes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,32 +17,33 @@ const configuracionMulter = {
   limits: { fileSize: 100000 },
   storage: multer.diskStorage({
     destination: (_req, _file, cb): void => {
-      cb(null, path.join(__dirname, "../../public/uploads/cv"));
+      cb(null, path.join(__dirname, '../../public/uploads/cv'));
     },
     filename: (_req, file, cb): void => {
-      const extension = file.mimetype.split("/")[1];
+      const extension = file.mimetype.split('/')[1];
       cb(null, `${shortid.generate()}.${extension}`);
     },
   }),
   fileFilter(_req, file, cb): void {
-    if (file.mimetype === "application/pdf") {
+    if (file.mimetype === 'application/pdf') {
       cb(null, true);
     } else {
-      cb(new Error("Formato No Válido | Invalid Format"));
+      cb(new Error('Formato No Válido | Invalid Format'));
     }
   },
 };
 
-const upload = multer(configuracionMulter).single("cv");
+const upload = multer(configuracionMulter).single('cv');
 
 /**
  * Mostrar formulario para nueva vacante
  * @en Show form for new vacancy
  */
 export const formularioNuevaVacante = (req: Request, res: Response): void => {
-  res.render("nueva-vacante", {
-    nombrePagina: "Nueva Vacante | New Vacancy",
-    tagline: "Llena el formulario y publica tu vacante | Fill the form and post your vacancy",
+  res.render('nueva-vacante', {
+    nombrePagina: 'Nueva Vacante | New Vacancy',
+    tagline:
+      'Llena el formulario y publica tu vacante | Fill the form and post your vacancy',
     cerrarSesion: true,
     nombre: req.user?.nombre,
     imagen: req.user?.imagen,
@@ -54,15 +56,17 @@ export const formularioNuevaVacante = (req: Request, res: Response): void => {
  */
 export const agregarVacante = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
-  const Vacante = (await import("../models/Vacantes.js")).default;
+  const Vacante = (await import('../models/Vacantes.js')).default;
   const vacante = new Vacante(req.body);
   vacante.autor = req.user?._id;
-  vacante.skills = (req.body.skills as string).split(",");
+  vacante.skills = (req.body.skills as string).split(',');
 
   const nuevaVacante = await vacante.save();
-  res.redirect(`/vacantes/${(nuevaVacante as unknown as IVacanteDocument).url}`);
+  res.redirect(
+    `/vacantes/${(nuevaVacante as unknown as IVacanteDocument).url}`,
+  );
 };
 
 /**
@@ -72,18 +76,21 @@ export const agregarVacante = async (
 export const mostrarVacante = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
-  const Vacante = (await import("../models/Vacantes.js")).default;
+  const Vacante = (await import('../models/Vacantes.js')).default;
+  await import('../models/Usuarios.js'); // registrar modelo para populate
   const vacante = await Vacante.findOne({
     url: req.params.url,
-  }).populate("autor");
+  })
+    .populate('autor')
+    .lean();
 
   if (!vacante) {
     return next();
   }
 
-  res.render("vacante", {
+  res.render('vacante', {
     vacante,
     nombrePagina: vacante.titulo,
     barra: true,
@@ -97,18 +104,18 @@ export const mostrarVacante = async (
 export const formEditarVacante = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
-  const Vacante = (await import("../models/Vacantes.js")).default;
+  const Vacante = (await import('../models/Vacantes.js')).default;
   const vacante = await Vacante.findOne({
     url: req.params.url,
-  });
+  }).lean();
 
   if (!vacante) {
     return next();
   }
 
-  res.render("editar-vacante", {
+  res.render('editar-vacante', {
     vacante,
     nombrePagina: `Editar - ${vacante.titulo} | Edit - ${vacante.titulo}`,
     cerrarSesion: true,
@@ -121,10 +128,13 @@ export const formEditarVacante = async (
  * Editar vacante en la base de datos
  * @en Edit vacancy in database
  */
-export const editarVacante = async (req: Request, res: Response): Promise<void> => {
-  const Vacante = (await import("../models/Vacantes.js")).default;
+export const editarVacante = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const Vacante = (await import('../models/Vacantes.js')).default;
   const vacanteActualizada = req.body;
-  vacanteActualizada.skills = (req.body.skills as string).split(",");
+  vacanteActualizada.skills = (req.body.skills as string).split(',');
 
   const vacante = await Vacante.findOneAndUpdate(
     { url: req.params.url },
@@ -132,7 +142,7 @@ export const editarVacante = async (req: Request, res: Response): Promise<void> 
     {
       new: true,
       runValidators: true,
-    }
+    },
   );
 
   if (vacante) {
@@ -144,60 +154,57 @@ export const editarVacante = async (req: Request, res: Response): Promise<void> 
  * Validar datos de la vacante
  * @en Validate vacancy data
  */
-export const validarVacante = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  // Sanitizar campos | Sanitize fields
-  req.sanitizeBody("titulo").escape();
-  req.sanitizeBody("empresa").escape();
-  req.sanitizeBody("ubicacion").escape();
-  req.sanitizeBody("salario").escape();
-  req.sanitizeBody("contrato").escape();
-  req.sanitizeBody("skills").escape();
+export const validarVacante = [
+  // Sanitizar y validar | Sanitize and validate
+  body('titulo').trim().escape().notEmpty().withMessage('Agrega un Titulo a la Vacante | Add a Title to the Vacancy'),
+  body('empresa').trim().escape().notEmpty().withMessage('Agrega una Empresa | Add a Company'),
+  body('ubicacion').trim().escape().notEmpty().withMessage('Agrega una Ubicación | Add a Location'),
+  body('salario').trim().escape(),
+  body('contrato').trim().escape().notEmpty().withMessage('Selecciona el Tipo de Contrato | Select Contract Type'),
+  body('skills').trim().escape().notEmpty().withMessage('Agrega al menos una habilidad | Add at least one skill'),
 
-  // Validar | Validate
-  req.checkBody("titulo", "Agrega un Titulo a la Vacante | Add a Title to the Vacancy").notEmpty();
-  req.checkBody("empresa", "Agrega una Empresa | Add a Company").notEmpty();
-  req.checkBody("ubicacion", "Agrega una Ubicación | Add a Location").notEmpty();
-  req.checkBody("contrato", "Selecciona el Tipo de Contrato | Select Contract Type").notEmpty();
-  req.checkBody("skills", "Agrega al menos una habilidad | Add at least one skill").notEmpty();
+  // Handler de errores | Error handler
+  (req: Request, res: Response, next: NextFunction): void => {
+    const errores = validationResult(req);
 
-  const errores = req.validationErrors();
+    if (!errores.isEmpty()) {
+      req.flash(
+        'error',
+        errores.array().map((error) => error.msg),
+      );
+      res.render('nueva-vacante', {
+        nombrePagina: 'Nueva Vacante | New Vacancy',
+        tagline: 'Llena el formulario y publica tu vacante',
+        cerrarSesion: true,
+        nombre: req.user?.nombre,
+        mensajes: req.flash(),
+      });
+      return;
+    }
 
-  if (errores) {
-    req.flash(
-      "error",
-      errores.map((error) => error.msg)
-    );
-    res.render("nueva-vacante", {
-      nombrePagina: "Nueva Vacante | New Vacancy",
-      tagline: "Llena el formulario y publica tu vacante",
-      cerrarSesion: true,
-      nombre: req.user?.nombre,
-      mensajes: req.flash(),
-    });
-    return;
-  }
-
-  next();
-};
+    next();
+  },
+];
 
 /**
  * Eliminar vacante
  * @en Delete vacancy
  */
-export const eliminarVacante = async (req: Request, res: Response): Promise<void> => {
-  const Vacante = (await import("../models/Vacantes.js")).default;
+export const eliminarVacante = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const Vacante = (await import('../models/Vacantes.js')).default;
   const { id } = req.params;
   const vacante = await Vacante.findById(id);
 
-  if (verificarAutor(vacante, req.user)) {
-    await vacante?.remove();
-    res.status(200).send("Vacante Eliminada Correctamente | Vacancy Successfully Deleted");
+  if (vacante && verificarAutor(vacante, req.user)) {
+    await Vacante.findByIdAndDelete(vacante._id);
+    res
+      .status(200)
+      .send('Vacante Eliminada Correctamente | Vacancy Successfully Deleted');
   } else {
-    res.status(403).send("Error | Error");
+    res.status(403).send('Error | Error');
   }
 };
 
@@ -207,7 +214,7 @@ export const eliminarVacante = async (req: Request, res: Response): Promise<void
  */
 const verificarAutor = (
   vacante: IVacanteDocument | null,
-  usuario?: Express.User
+  usuario?: Express.User,
 ): boolean => {
   if (!vacante || !usuario) return false;
   return vacante.autor?.equals(usuario._id) ?? false;
@@ -217,20 +224,24 @@ const verificarAutor = (
  * Middleware para subir CV
  * @en Middleware to upload CV
  */
-export const subirCV = (req: Request, res: Response, next: NextFunction): void => {
+export const subirCV = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   upload(req, res, function (error) {
     if (error) {
       if (error instanceof MulterError) {
         req.flash(
-          "error",
-          error.code === "LIMIT_FILE_SIZE"
-            ? "El archivo es muy grande: Máximo 100kb | File too large: Max 100kb"
-            : error.message
+          'error',
+          error.code === 'LIMIT_FILE_SIZE'
+            ? 'El archivo es muy grande: Máximo 100kb | File too large: Max 100kb'
+            : error.message,
         );
       } else {
-        req.flash("error", error.message);
+        req.flash('error', error.message);
       }
-      res.redirect("back");
+      res.redirect('back');
       return;
     }
     next();
@@ -244,9 +255,9 @@ export const subirCV = (req: Request, res: Response, next: NextFunction): void =
 export const contactar = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
-  const Vacante = (await import("../models/Vacantes.js")).default;
+  const Vacante = (await import('../models/Vacantes.js')).default;
   const vacante = await Vacante.findOne({
     url: req.params.url,
   });
@@ -258,14 +269,17 @@ export const contactar = async (
   const nuevoCandidato = {
     nombre: req.body.nombre,
     email: req.body.email,
-    cv: (req.file as Express.Multer.File)?.filename ?? "",
+    cv: (req.file as Express.Multer.File)?.filename ?? '',
   };
 
   vacante.candidatos.push(nuevoCandidato);
   await vacante.save();
 
-  req.flash("correcto", "Se envió tu Curriculum Correctamente | CV Sent Successfully");
-  res.redirect("/");
+  req.flash(
+    'correcto',
+    'Se envió tu Curriculum Correctamente | CV Sent Successfully',
+  );
+  res.redirect('/');
 };
 
 /**
@@ -275,10 +289,10 @@ export const contactar = async (
 export const mostrarCandidatos = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
-  const Vacante = (await import("../models/Vacantes.js")).default;
-  const vacante = await Vacante.findById(req.params.id);
+  const Vacante = (await import('../models/Vacantes.js')).default;
+  const vacante = await Vacante.findById(req.params.id).lean();
 
   if (!vacante) {
     return next();
@@ -289,7 +303,7 @@ export const mostrarCandidatos = async (
     return next();
   }
 
-  res.render("candidatos", {
+  res.render('candidatos', {
     nombrePagina: `Candidatos Vacante - ${vacante.titulo} | Candidates - ${vacante.titulo}`,
     cerrarSesion: true,
     nombre: req.user?.nombre,
@@ -302,15 +316,18 @@ export const mostrarCandidatos = async (
  * Buscar vacantes por texto
  * @en Search vacancies by text
  */
-export const buscarVacantes = async (req: Request, res: Response): Promise<void> => {
-  const Vacante = (await import("../models/Vacantes.js")).default;
+export const buscarVacantes = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const Vacante = (await import('../models/Vacantes.js')).default;
   const vacantes = await Vacante.find({
     $text: {
       $search: req.body.q,
     },
-  });
+  }).lean();
 
-  res.render("home", {
+  res.render('home', {
     nombrePagina: `Resultados para la búsqueda: ${req.body.q} | Search results: ${req.body.q}`,
     barra: true,
     vacantes,

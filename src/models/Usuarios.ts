@@ -52,19 +52,12 @@ const usuariosSchema = new Schema<IUsuarioDocument>(
  * Middleware para hashear passwords antes de guardar
  * @en Middleware to hash passwords before saving
  */
-usuariosSchema.pre("save", async function (next): Promise<void> {
+usuariosSchema.pre("save", async function (): Promise<void> {
   // si el password ya está hasheado / if password is already hashed
-  if (!this.isModified("password")) {
-    return next();
-  }
+  if (!this.isModified("password")) return;
   // si no está hasheado, hashearlo / if not hashed, hash it
-  try {
-    const hash = await bcrypt.hash(this.password, 12);
-    this.password = hash;
-    next();
-  } catch (error) {
-    next(error);
-  }
+  const hash = await bcrypt.hash(this.password, 12);
+  this.password = hash;
 });
 
 /**

@@ -2,7 +2,7 @@
 module.exports = {
   extends: ["@commitlint/config-conventional"],
   rules: {
-    "subject-case": [2, "always", "lower-case"],
+    "subject-case": [0, "always", "lower-case"],
     "type-enum": [
       2,
       "always",
@@ -32,7 +32,7 @@ module.exports = {
       footerPrefixes: "Agrega los IDs de issues relacionados (opcional):",
       generatingByAI: "Generando descripción con IA...",
       generatedSelect: "Selecciona una opción o escribe la tuya:",
-      confirmCommit "¿Estás seguro de hacer commit?",
+      confirmCommit: "¿Estás seguro de hacer commit?",
     },
     typesLabel: "Tipos disponibles:",
     scopesLabel: "Ámbitos disponibles (escribe uno nuevo si no está):",

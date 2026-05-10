@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 export const mostrarTrabajos = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const Vacante = (await import("../models/Vacantes.js")).default;
-    const vacantes = await Vacante.find({});
+    const vacantes = await Vacante.find({}).lean();
 
     if (!vacantes) return next();
 

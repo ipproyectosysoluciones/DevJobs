@@ -206,6 +206,7 @@ const routes = (): Router => {
     "/editar-perfil",
     authController.verificarUsuario,
     usuariosController.subirImagen,
+    usuariosController.validarPerfil,
     usuariosController.editarPerfil
   );
 

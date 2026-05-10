@@ -32,11 +32,17 @@ const __dirname = path.dirname(__filename);
 
 const app: Express = express();
 
+// biome-ignore lint/suspicious/noExplicitAny: express-handlebars v9 types issue
+const hbs = exphbs as any;
 app.engine(
   "handlebars",
-  exphbs({
+  hbs.engine({
     defaultLayout: "layout",
     helpers: (await import("./helpers/handlebars.js")).default,
+    runtimeOptions: {
+      allowProtoPropertiesByDefault: true,
+      allowProtoMethodsByDefault: true,
+    },
   })
 );
 app.set("view engine", "handlebars");

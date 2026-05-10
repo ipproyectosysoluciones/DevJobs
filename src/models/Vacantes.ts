@@ -35,7 +35,7 @@ const vacantesSchema = new Schema<IVacanteDocument>(
   {
     titulo: {
       type: String,
-      required: "El nombre de la vacante es obligatorio",
+      required: [true, "El nombre de la vacante es obligatorio"],
       trim: true,
     },
     empresa: {
@@ -45,7 +45,7 @@ const vacantesSchema = new Schema<IVacanteDocument>(
     ubicacion: {
       type: String,
       trim: true,
-      required: "La ubicación es obligatoria",
+      required: [true, "La ubicación es obligatoria"],
     },
     salario: {
       type: String,
@@ -79,7 +79,7 @@ const vacantesSchema = new Schema<IVacanteDocument>(
     autor: {
       type: Schema.Types.ObjectId,
       ref: "Usuarios",
-      required: "El autor es obligatorio",
+      required: [true, "El autor es obligatorio"],
     },
   },
   {
@@ -91,10 +91,10 @@ const vacantesSchema = new Schema<IVacanteDocument>(
 /**
  * Middleware para crear URL antes de guardar
  */
-vacantesSchema.pre("save", async function (next) {
-  const url = slug(this.titulo);
-  this.url = `${url}-${shortid.generate()}`;
-  next();
+vacantesSchema.pre("save", async function () {
+  const doc = this as unknown as IVacanteDocument;
+  const url = slug(doc.titulo);
+  doc.url = `${url}-${shortid.generate()}`;
 });
 
 /**
@@ -116,7 +116,8 @@ vacantesSchema.path("url").validate(validarURL, "URL no válida");
  * Virtual para nombre completo (empresa - título)
  */
 vacantesSchema.virtual("nombreCompleto").get(function (): string {
-  return `${this.empresa} - ${this.titulo}`;
+  const doc = this as unknown as IVacanteDocument;
+  return `${doc.empresa} - ${doc.titulo}`;
 });
 
 /**

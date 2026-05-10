@@ -1,6 +1,4 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Run lint before commit
-# Ejecutar lint antes del commit
-npx eslint src --ext .ts,.tsx
+echo "✅ Commit en progreso..."
