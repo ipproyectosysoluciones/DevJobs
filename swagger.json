@@ -33,9 +33,170 @@
     {
       "name": "Búsqueda",
       "description": "Búsqueda de vacantes | Job search"
+    },
+    {
+      "name": "Autenticación",
+      "description": "API de autenticación JWT | JWT Authentication API"
+    },
+    {
+      "name": "Empleos",
+      "description": "Gestión de empleos | Jobs management"
+    },
+    {
+      "name": "Chat",
+      "description": "Chat BuilderBot | BuilderBot chat"
+    },
+    {
+      "name": "Donaciones",
+      "description": "Sistema de donaciones | Donations system"
+    },
+    {
+      "name": "Analíticas",
+      "description": "Analíticas y métricas | Analytics and metrics"
     }
   ],
   "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Autenticación"],
+        "summary": "Registrar nuevo usuario | Register new user",
+        "description": "Crea una nueva cuenta de usuario en el sistema | Creates a new user account in the system",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password", "name", "role"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico del usuario | User email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 8,
+                    "description": "Contraseña del usuario | User password"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Nombre completo del usuario | User full name"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["admin", "employer", "job_seeker", "premium", "moderator"],
+                    "description": "Rol del usuario | User role"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado exitosamente | User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "Token JWT de acceso | JWT access token"
+                    },
+                    "user": {
+                      "type": "object",
+                      "description": "Datos del usuario | User data"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o usuario ya existe | Invalid data or user already exists"
+          },
+          "500": {
+            "description": "Error interno del servidor | Internal server error"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Autenticación"],
+        "summary": "Iniciar sesión | Login",
+        "description": "Autentica a un usuario y retorna token JWT | Authenticates a user and returns JWT token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico | Email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Contraseña | Password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso | Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas | Invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/auth/profile": {
+      "get": {
+        "tags": ["Autenticación"],
+        "summary": "Obtener perfil de usuario | Get user profile",
+        "description": "Retorna los datos del usuario autenticado | Returns authenticated user data",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil del usuario | User profile"
+          },
+          "401": {
+            "description": "No autorizado | Unauthorized"
+          }
+        }
+      }
+    },
     "/": {
       "get": {
         "tags": ["Vacantes"],
@@ -753,6 +914,12 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "connect.sid"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT de autenticación | JWT authentication token"
       }
     }
   }
