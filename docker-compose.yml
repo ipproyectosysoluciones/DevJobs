@@ -1,20 +1,166 @@
+/**
+ * @fileoverview Docker Compose configuration for DevJobs
+ * @fileoverview Configuración de Docker Compose para DevJobs
+ * @module docker-compose
+ * 
+ * Services included:
+ * - devjobs: Backend Node.js application
+ * - mongodb: Database
+ * - redis: Cache and sessions
+ * - builderbot: Chatbot service
+ * - nginx: Reverse proxy (optional)
+ */
+
 services:
+  # ============================================
+  # DevJobs Backend Application
+  # ============================================
+  devjobs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: devjobs-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongodb:27017/devjobs
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-devjobs-secret-key-change-in-production}
+      - JWT_EXPIRES_IN=24h
+      - BUILDERBOT_URL=http://builderbot:3008
+      - BUILDERBOT_API_KEY=${BUILDERBOT_API_KEY:-}
+    volumes:
+      - ./uploads:/app/uploads:rw
+      - ./logs:/app/logs:rw
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - devjobs-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # MongoDB Database
+  # ============================================
   mongodb:
-    image: mongo:7.0
+    image: mongo:7
     container_name: devjobs-mongodb
     restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_DATABASE: devjobs
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-devjobs123}
+      - MONGO_INITDB_DATABASE=devjobs
     volumes:
       - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - devjobs-network
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ============================================
+  # Redis Cache & Sessions
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: devjobs-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - devjobs-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # ============================================
+  # BuilderBot Chat Service
+  # ============================================
+  builderbot:
+    image: node:21-alpine
+    container_name: devjobs-builderbot
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "3008:3008"
+    environment:
+      - NODE_ENV=production
+      - PORT=3008
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - DATABASE_PROVIDER=memory
+      - META_TOKEN=${META_TOKEN:-}
+      - META_PHONE_ID=${META_PHONE_ID:-}
+    volumes:
+      - builderbot_sessions:/app/bot_sessions
+    networks:
+      - devjobs-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # Nginx Reverse Proxy (Optional)
+  # ============================================
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: devjobs-nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./ssl:/etc/nginx/ssl:ro
+  #   depends_on:
+  #     - devjobs
+  #   networks:
+  #     - devjobs-network
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  devjobs-network:
+    driver: bridge
+
+# ============================================
+# Volumes
+# ============================================
 volumes:
   mongodb_data:
     driver: local
+  redis_data:
+    driver: local
+  builderbot_sessions:
+    driver: local
+
+# ============================================
+# Development Configuration
+# ============================================
+# Para desarrollo, usar:
+# docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
