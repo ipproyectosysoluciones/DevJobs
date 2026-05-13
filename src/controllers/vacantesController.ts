@@ -60,7 +60,7 @@ export const agregarVacante = async (
 ): Promise<void> => {
   const Vacante = (await import('../models/Vacantes.js')).default;
   const vacante = new Vacante(req.body);
-  vacante.autor = req.user?._id;
+  vacante.autor = req.user?._id ?? '';
   vacante.skills = (req.body.skills as string).split(',');
 
   const nuevaVacante = await vacante.save();

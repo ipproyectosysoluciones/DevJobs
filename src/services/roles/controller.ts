@@ -340,7 +340,7 @@ export function assignRole(req: Request, res: Response): void {
   };
 
   // Actualizar contador de usuarios del rol
-  role.userCount += 1;
+  role.userCount = (role.userCount ?? 0) + 1;
   roles.set(role._id, role);
 
   res.status(201).json({
