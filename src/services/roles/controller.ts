@@ -257,6 +257,7 @@ export function checkPermission(req: Request, res: Response): void {
     hasPermission,
     permissions: userPermissions,
     role: user.role,
+    missingPermissions: hasPermission ? [] : [permission as PermissionName],
   };
 
   res.json(result);
@@ -309,7 +310,7 @@ function getUserPermissions(roleName: RoleName): PermissionName[] {
  * @returns {void}
  */
 export function assignRole(req: Request, res: Response): void {
-  const { userId } = req.params;
+  const userId = req.params.userId as string;
   const { roleName } = req.body;
   const adminUser = (req as any).user;
 

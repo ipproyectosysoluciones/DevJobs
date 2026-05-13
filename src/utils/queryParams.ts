@@ -23,8 +23,8 @@ import type { Request } from 'express';
 export function queryString(req: Request, key: string, defaultValue: string = ''): string {
   const val = req.query[key];
   if (val === undefined || val === null) return defaultValue;
-  if (Array.isArray(val)) return val[0] ?? defaultValue;
-  return val;
+  if (Array.isArray(val)) return (val[0] as string | undefined) ?? defaultValue;
+  return val as string;
 }
 
 /**
@@ -43,7 +43,7 @@ export function queryArray(req: Request, key: string): string[] {
   const val = req.query[key];
   if (val === undefined || val === null) return [];
   if (Array.isArray(val)) return val as string[];
-  return [val];
+  return [val as string];
 }
 
 /**
@@ -61,6 +61,6 @@ export function queryArray(req: Request, key: string): string[] {
 export function queryOptional(req: Request, key: string): string | undefined {
   const val = req.query[key];
   if (val === undefined || val === null) return undefined;
-  if (Array.isArray(val)) return val[0];
-  return val;
+  if (Array.isArray(val)) return val[0] as string | undefined;
+  return val as string;
 }

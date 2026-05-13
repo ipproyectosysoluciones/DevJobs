@@ -303,7 +303,7 @@ export async function searchJobs(req: Request, res: Response): Promise<void> {
  * @returns {void}
  */
 export function getJobDetails(req: Request, res: Response): void {
-  const { jobId } = req.params;
+  const jobId = req.params.jobId as string;
 
   // Simular datos del empleo
   const job: LinkedInJob = {

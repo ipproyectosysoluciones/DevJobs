@@ -5,11 +5,6 @@
  * @en Express type extensions
  */
 
-import type {
-  NextFunction as ExpressNextFunction,
-  Response as ExpressResponse,
-} from 'express';
-
 /**
  * Extensiones de tipos para Express
  * @en Express type extensions
@@ -23,13 +18,9 @@ declare global {
      * @es Usuario autenticado en la sesión
      */
     interface User {
-      /** ID del usuario | User ID */
       _id: string;
-      /** Nombre del usuario | User name */
       nombre: string;
-      /** Correo electrónico | Email */
       email: string;
-      /** URL de la imagen | Image URL */
       imagen?: string;
     }
 
@@ -46,19 +37,22 @@ declare global {
     }
 
     /**
-     * Alias de NextFunction para rutas
-     * @en NextFunction alias for routes
-     * @es Alias de NextFunction para rutas
+     * Función next de Express
+     * @en Express next function
+     * @es Función next de Express
      */
-    type NextFunction = ExpressNextFunction;
+    type NextFunction = (err?: unknown) => void;
 
     /**
-     * Response de Express con tipado completo
-     * @en Fully typed Express Response
-     * @es Response de Express con tipado completo
+     * Response de Express (versión simplificada para rutas)
+     * @en Express Response (simplified for routes)
+     * @es Response de Express (versión simplificada para rutas)
      */
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    interface Response extends ExpressResponse {}
+    interface Response {
+      status(code: number): Response;
+      json(body?: unknown): void;
+      send(body?: unknown): Response;
+    }
   }
 }
 

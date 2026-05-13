@@ -184,6 +184,10 @@ export interface UpdateRoleRequest {
 export interface PermissionCheckResult {
   /** Tiene el permiso solicitado | Has the requested permission */
   hasPermission: boolean;
+  /** Permisos del usuario | User permissions */
+  permissions: PermissionName[];
+  /** Rol del usuario | User role */
+  role: string;
   /** Lista de permisos faltantes | Missing permissions */
   missingPermissions: PermissionName[];
 }
