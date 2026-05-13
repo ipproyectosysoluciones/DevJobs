@@ -18,6 +18,7 @@
   "author": "Bladimir Gerson Parra Bermudez",
   "license": "MIT",
   "dependencies": {
+    "@types/socket.io": "^3.0.2",
     "axios": "^1.16.0",
     "bcryptjs": "^3.0.3",
     "connect-flash": "^0.1.1",
@@ -29,6 +30,7 @@
     "express-session": "^1.19.0",
     "express-validator": "^7.3.2",
     "http-errors": "^2.0.1",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.6.2",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.7",
@@ -37,6 +39,7 @@
     "passport-local": "^1.0.0",
     "shortid": "^2.2.17",
     "slug": "^11.0.1",
+    "socket.io": "^4.8.3",
     "tsx": "^4.21.0"
   },
   "devDependencies": {
@@ -48,6 +51,7 @@
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.19.0",
     "@types/http-errors": "^2.0.5",
+    "@types/jsonwebtoken": "^9.0.5",
     "@types/multer": "^2.1.0",
     "@types/node": "^25.6.2",
     "@types/nodemailer": "^8.0.0",

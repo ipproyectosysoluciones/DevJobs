@@ -217,7 +217,7 @@ const verificarAutor = (
   usuario?: Express.User,
 ): boolean => {
   if (!vacante || !usuario) return false;
-  return vacante.autor?.equals(usuario._id) ?? false;
+  return vacante.autor === usuario._id;
 };
 
 /**

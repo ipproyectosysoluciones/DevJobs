@@ -33,9 +33,623 @@
     {
       "name": "Búsqueda",
       "description": "Búsqueda de vacantes | Job search"
+    },
+    {
+      "name": "Autenticación",
+      "description": "API de autenticación JWT | JWT Authentication API"
+    },
+    {
+      "name": "Empleos",
+      "description": "Gestión de empleos | Jobs management"
+    },
+    {
+      "name": "Chat",
+      "description": "Chat BuilderBot | BuilderBot chat"
+    },
+    {
+      "name": "Donaciones",
+      "description": "Sistema de donaciones | Donations system"
+    },
+    {
+      "name": "Analíticas",
+      "description": "Analíticas y métricas | Analytics and metrics"
+    },
+    {
+      "name": "LinkedIn",
+      "description": "Integración con LinkedIn | LinkedIn integration"
     }
   ],
   "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Autenticación"],
+        "summary": "Registrar nuevo usuario | Register new user",
+        "description": "Crea una nueva cuenta de usuario en el sistema | Creates a new user account in the system",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password", "name", "role"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico del usuario | User email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 8,
+                    "description": "Contraseña del usuario | User password"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Nombre completo del usuario | User full name"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["admin", "employer", "job_seeker", "premium", "moderator"],
+                    "description": "Rol del usuario | User role"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado exitosamente | User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "Token JWT de acceso | JWT access token"
+                    },
+                    "user": {
+                      "type": "object",
+                      "description": "Datos del usuario | User data"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o usuario ya existe | Invalid data or user already exists"
+          },
+          "500": {
+            "description": "Error interno del servidor | Internal server error"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Autenticación"],
+        "summary": "Iniciar sesión | Login",
+        "description": "Autentica a un usuario y retorna token JWT | Authenticates a user and returns JWT token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico | Email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Contraseña | Password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso | Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas | Invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/auth/profile": {
+      "get": {
+        "tags": ["Autenticación"],
+        "summary": "Obtener perfil de usuario | Get user profile",
+        "description": "Retorna los datos del usuario autenticado | Returns authenticated user data",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil del usuario | User profile"
+          },
+          "401": {
+            "description": "No autorizado | Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/jobs": {
+      "get": {
+        "tags": ["Empleos"],
+        "summary": "Obtener lista de empleos | Get jobs list",
+        "description": "Retorna lista de empleos con filtros y paginación | Returns jobs list with filters and pagination",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Texto de búsqueda | Search text"
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Ciudad | City"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "País | Country"
+          },
+          {
+            "name": "remote",
+            "in": "query",
+            "schema": { "type": "boolean" },
+            "description": "Solo remotos | Remote only"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["full-time", "part-time", "contract", "internship", "freelance"] },
+            "description": "Tipo de empleo | Job type"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 },
+            "description": "Página | Page"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 10 },
+            "description": "Límite por página | Limit per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de empleos | Jobs list"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Empleos"],
+        "summary": "Crear nuevo empleo | Create new job",
+        "description": "Crea una nueva vacante de empleo | Creates a new job vacancy",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "description", "requirements"],
+                "properties": {
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "requirements": { "type": "array", "items": { "type": "string" } },
+                  "location": {
+                    "type": "object",
+                    "properties": {
+                      "city": { "type": "string" },
+                      "country": { "type": "string" },
+                      "remote": { "type": "boolean" }
+                    }
+                  },
+                  "salary": {
+                    "type": "object",
+                    "properties": {
+                      "min": { "type": "number" },
+                      "max": { "type": "number" },
+                      "currency": { "type": "string" }
+                    }
+                  },
+                  "type": { "type": "string", "enum": ["full-time", "part-time", "contract", "internship", "freelance"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Empleo creado | Job created" },
+          "401": { "description": "No autenticado | Not authenticated" }
+        }
+      }
+    },
+    "/api/jobs/{id}": {
+      "get": {
+        "tags": ["Empleos"],
+        "summary": "Obtener empleo por ID | Get job by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del empleo | Job ID"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Empleo encontrado | Job found" },
+          "404": { "description": "Empleo no encontrado | Job not found" }
+        }
+      },
+      "put": {
+        "tags": ["Empleos"],
+        "summary": "Actualizar empleo | Update job",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Empleo actualizado | Job updated" },
+          "403": { "description": "No autorizado | Not authorized" }
+        }
+      },
+      "delete": {
+        "tags": ["Empleos"],
+        "summary": "Eliminar empleo | Delete job",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Empleo eliminado | Job deleted" },
+          "403": { "description": "No autorizado | Not authorized" }
+        }
+      }
+    },
+    "/api/jobs/{id}/apply": {
+      "post": {
+        "tags": ["Empleos"],
+        "summary": "Aplicar a empleo | Apply to job",
+        "description": "Postula a un empleo existente | Applies to an existing job",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "coverLetter": { "type": "string" },
+                  "resume": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Postulación exitosa | Application successful" },
+          "400": { "description": "Ya aplicaste | Already applied" }
+        }
+      }
+    },
+    "/api/applications/me": {
+      "get": {
+        "tags": ["Empleos"],
+        "summary": "Mis postulaciones | My applications",
+        "description": "Retorna las postulaciones del usuario actual | Returns current user's applications",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de postulaciones | Applications list" }
+        }
+      }
+    },
+    "/api/donations/plans": {
+      "get": {
+        "tags": ["Donaciones"],
+        "summary": "Obtener planes de patrocinio | Get sponsorship plans",
+        "description": "Retorna los planes de donación disponibles | Returns available donation plans",
+        "responses": {
+          "200": { "description": "Lista de planes | Plans list" }
+        }
+      }
+    },
+    "/api/donations": {
+      "post": {
+        "tags": ["Donaciones"],
+        "summary": "Crear donación | Create donation",
+        "description": "Inicia el proceso de donación | Starts donation process",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["amount", "paymentMethod"],
+                "properties": {
+                  "amount": { "type": "number", "minimum": 1 },
+                  "currency": { "type": "string", "default": "USD" },
+                  "paymentMethod": { "type": "string", "enum": ["stripe", "paypal"] },
+                  "planId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Sesión de checkout | Checkout session" }
+        }
+      }
+    },
+    "/api/donations/me": {
+      "get": {
+        "tags": ["Donaciones"],
+        "summary": "Mis donaciones | My donations",
+        "description": "Retorna las donaciones del usuario actual | Returns current user's donations",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de donaciones | Donations list" }
+        }
+      }
+    },
+    "/api/donations/stats": {
+      "get": {
+        "tags": ["Donaciones"],
+        "summary": "Estadísticas de donaciones | Donations stats",
+        "description": "Retorna estadísticas de donaciones | Returns donation statistics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Estadísticas | Statistics" }
+        }
+      }
+    },
+    "/api/donations/webhooks/stripe": {
+      "post": {
+        "tags": ["Donaciones"],
+        "summary": "Webhook de Stripe | Stripe webhook",
+        "description": "Procesa eventos de Stripe | Processes Stripe events",
+        "responses": {
+          "200": { "description": "Webhook procesado | Webhook processed" }
+        }
+      }
+    },
+    "/api/donations/webhooks/paypal": {
+      "post": {
+        "tags": ["Donaciones"],
+        "summary": "Webhook de PayPal | PayPal webhook",
+        "description": "Procesa eventos de PayPal | Processes PayPal events",
+        "responses": {
+          "200": { "description": "Webhook procesado | Webhook processed" }
+        }
+      }
+    },
+    "/api/analytics/events": {
+      "post": {
+        "tags": ["Analíticas"],
+        "summary": "Registrar evento | Track event",
+        "description": "Registra un evento de analítica | Tracks an analytics event",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["eventType"],
+                "properties": {
+                  "eventType": { "type": "string", "enum": ["page_view", "button_click", "form_submit", "search", "job_view", "job_apply", "user_register", "user_login", "chat_message", "donation", "error"] },
+                  "data": { "type": "object" },
+                  "metadata": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Evento registrado | Event tracked" }
+        }
+      }
+    },
+    "/api/analytics/dashboard": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Métricas del dashboard | Dashboard metrics",
+        "description": "Retorna métricas para el dashboard | Returns dashboard metrics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Métricas del dashboard | Dashboard metrics" }
+        }
+      }
+    },
+    "/api/analytics/users": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Métricas de usuarios | User metrics",
+        "description": "Retorna métricas de usuarios | Returns user metrics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Métricas de usuarios | User metrics" }
+        }
+      }
+    },
+    "/api/analytics/jobs": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Métricas de empleos | Job metrics",
+        "description": "Retorna métricas de empleos | Returns job metrics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Métricas de empleos | Job metrics" }
+        }
+      }
+    },
+    "/api/analytics/trends": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Tendencias de visitas | Visit trends",
+        "description": "Retorna tendencias de visitas | Returns visit trends",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Tendencias | Trends" }
+        }
+      }
+    },
+    "/api/analytics/report": {
+      "get": {
+        "tags": ["Analíticas"],
+        "summary": "Reporte de analíticas | Analytics report",
+        "description": "Retorna un reporte completo | Returns a complete report",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Reporte | Report" }
+        }
+      }
+    },
+    "/api/linkedin/auth": {
+      "get": {
+        "tags": ["LinkedIn"],
+        "summary": "Iniciar OAuth de LinkedIn | Start LinkedIn OAuth",
+        "description": "Genera la URL de autorización de LinkedIn | Generates LinkedIn authorization URL",
+        "responses": {
+          "200": { "description": "URL de autorización | Authorization URL" }
+        }
+      }
+    },
+    "/api/linkedin/callback": {
+      "get": {
+        "tags": ["LinkedIn"],
+        "summary": "Callback de OAuth | OAuth callback",
+        "description": "Maneja el callback de LinkedIn OAuth | Handles LinkedIn OAuth callback",
+        "parameters": [
+          { "name": "code", "in": "query", "schema": { "type": "string" } },
+          { "name": "state", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "302": { "description": "Redirección | Redirect" }
+        }
+      }
+    },
+    "/api/linkedin/profile": {
+      "get": {
+        "tags": ["LinkedIn"],
+        "summary": "Obtener perfil de LinkedIn | Get LinkedIn profile",
+        "description": "Retorna el perfil de LinkedIn vinculado | Returns linked LinkedIn profile",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Perfil de LinkedIn | LinkedIn profile" }
+        }
+      }
+    },
+    "/api/linkedin/sync": {
+      "post": {
+        "tags": ["LinkedIn"],
+        "summary": "Sincronizar perfil | Sync profile",
+        "description": "Sincroniza los datos del perfil de LinkedIn | Synchronizes LinkedIn profile data",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Perfil sincronizado | Profile synced" }
+        }
+      }
+    },
+    "/api/linkedin/disconnect": {
+      "post": {
+        "tags": ["LinkedIn"],
+        "summary": "Desvincular LinkedIn | Disconnect LinkedIn",
+        "description": "Desvincula la cuenta de LinkedIn | Unlinks LinkedIn account",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Cuenta desvinculada | Account unlinked" }
+        }
+      }
+    },
+    "/api/linkedin/jobs": {
+      "get": {
+        "tags": ["LinkedIn"],
+        "summary": "Buscar empleos en LinkedIn | Search LinkedIn jobs",
+        "description": "Busca empleos en LinkedIn | Searches jobs on LinkedIn",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "keyword", "in": "query", "schema": { "type": "string" } },
+          { "name": "location", "in": "query", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }
+        ],
+        "responses": {
+          "200": { "description": "Lista de empleos | Jobs list" }
+        }
+      }
+    },
+    "/api/linkedin/jobs/{jobId}": {
+      "get": {
+        "tags": ["LinkedIn"],
+        "summary": "Obtener empleo de LinkedIn | Get LinkedIn job",
+        "description": "Retorna detalles de un empleo específico | Returns specific job details",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "jobId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Detalles del empleo | Job details" }
+        }
+      }
+    },
     "/": {
       "get": {
         "tags": ["Vacantes"],
@@ -753,6 +1367,12 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "connect.sid"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT de autenticación | JWT authentication token"
       }
     }
   }

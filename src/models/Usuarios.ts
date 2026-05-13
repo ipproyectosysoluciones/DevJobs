@@ -1,6 +1,6 @@
 import mongoose, { Schema, type Document } from "mongoose";
 import bcrypt from "bcryptjs";
-import type { IUsuario } from "../types/usuario.js";
+import type { IUsuario, RoleName } from "../types/usuario.js";
 
 /**
  * Interfaz del documento Usuario
@@ -40,6 +40,11 @@ const usuariosSchema = new Schema<IUsuarioDocument>(
     },
     imagen: {
       type: String,
+    },
+    role: {
+      type: String,
+      enum: ['admin', 'employer', 'job_seeker', 'premium', 'moderator'],
+      default: 'job_seeker',
     },
   },
   {

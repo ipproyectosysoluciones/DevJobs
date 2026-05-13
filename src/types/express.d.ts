@@ -1,4 +1,9 @@
-import { Types } from "mongoose";
+/**
+ * @fileoverview Extensiones de tipos para Express
+ * @fileoverview Express type extensions
+ * @es Extensiones de tipos para Express
+ * @en Express type extensions
+ */
 
 /**
  * Extensiones de tipos para Express
@@ -11,9 +16,10 @@ declare global {
     /**
      * Usuario autenticado en la sesión
      * @en User authenticated in session
+     * @es Usuario autenticado en la sesión
      */
     interface User {
-      _id: Types.ObjectId;
+      _id: string; // Changed from Types.ObjectId to string for consistency with our AuthUser
       nombre: string;
       email: string;
       imagen?: string;
@@ -22,6 +28,7 @@ declare global {
     /**
      * Request con usuario autenticado
      * @en Request with authenticated user
+     * @es Request con usuario autenticado
      */
     interface Request {
       user?: User;
