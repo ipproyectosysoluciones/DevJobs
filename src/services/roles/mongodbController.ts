@@ -8,6 +8,9 @@ import type { Request, Response } from 'express';
 import type { RoleName, PermissionName } from './types.js';
 import Role from '../../models/Role.js';
 
+/** Valores válidos para RoleName (para validación runtime) */
+const VALID_ROLE_NAMES: readonly RoleName[] = ['admin', 'employer', 'job_seeker', 'premium', 'moderator'];
+
 /**
  * Obtiene todos los roles desde MongoDB
  * @function getRoles
@@ -280,9 +283,18 @@ export async function assignRole(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const role = await Role.findOne({ name: roleName as RoleName, isActive: true });
+    // Validar que roleName sea un valor válido del union type
+    if (!VALID_ROLE_NAMES.includes(roleName)) {
+      res.status(400).json({
+        error: `Nombre de rol inválido: "${roleName}"`,
+        message: `Invalid role name: "${roleName}". Valid roles: ${VALID_ROLE_NAMES.join(', ')}`,
+      });
+      return;
+    }
+
+    const targetRole = await Role.findOne({ name: roleName as RoleName, isActive: true });
     
-    if (!role) {
+    if (!targetRole) {
       res.status(404).json({
         error: 'Rol no encontrado',
         message: 'Role not found',
@@ -302,18 +314,40 @@ export async function assignRole(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // Actualizar rol del usuario
+    // Si el usuario ya tiene el mismo rol, no hacer nada
+    if (usuario.role === roleName) {
+      res.status(200).json({
+        message: 'El usuario ya tiene este rol asignado',
+        userId,
+        roleName,
+        alreadyAssigned: true,
+      });
+      return;
+    }
+
+    // Decrementar contador del rol anterior si existe
+    const previousRoleName = usuario.role;
+    if (previousRoleName && VALID_ROLE_NAMES.includes(previousRoleName as RoleName)) {
+      const previousRole = await Role.findOne({ name: previousRoleName as RoleName });
+      if (previousRole && previousRole.userCount > 0) {
+        previousRole.userCount -= 1;
+        await previousRole.save();
+      }
+    }
+
+    // Asignar nuevo rol
     usuario.role = roleName;
     await usuario.save();
 
-    // Incrementar contador del rol
-    role.userCount += 1;
-    await role.save();
+    // Incrementar contador del nuevo rol
+    targetRole.userCount = (targetRole.userCount ?? 0) + 1;
+    await targetRole.save();
 
     res.status(201).json({
       message: 'Rol asignado correctamente',
       userId,
       roleName,
+      previousRole: previousRoleName ?? null,
     });
   } catch (error) {
     res.status(500).json({

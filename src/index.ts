@@ -26,6 +26,9 @@ import passport from "./config/passport.js";
 // Importar configuración de la base de datos
 import conectarDB from "./config/db.js";
 
+// Importar seed de roles del sistema
+import { initializeSystemRoles } from "./services/roles/mongodbController.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -63,6 +66,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 await conectarDB();
+
+// Inicializar roles del sistema en MongoDB si no existen
+await initializeSystemRoles();
 
 app.use((req: Request, res: Response, next: NextFunction): void => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
