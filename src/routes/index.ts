@@ -3,6 +3,7 @@ import * as homeController from "../controllers/homeController.js";
 import * as vacantesController from "../controllers/vacantesController.js";
 import * as usuariosController from "../controllers/usuariosController.js";
 import * as authController from "../controllers/authController.js";
+import * as rolesController from "../services/roles/mongodbController.js";
 
 const router = Router();
 
@@ -231,6 +232,66 @@ const routes = (): Router => {
     authController.verificarUsuario,
     vacantesController.mostrarCandidatos
   );
+
+  // ==========================================
+  // RUTAS DE ROLES | ROLES ROUTES
+  // ==========================================
+
+  /**
+   * @route GET /api/roles
+   * @desc Obtener todos los roles
+   * @access Public
+   */
+  router.get("/api/roles", rolesController.getRoles);
+
+  /**
+   * @route GET /api/roles/:name
+   * @desc Obtener un rol por nombre
+   * @access Public
+   */
+  router.get("/api/roles/:name", rolesController.getRoleByName);
+
+  /**
+   * @route GET /api/permisos
+   * @desc Obtener todos los permisos
+   * @access Public
+   */
+  router.get("/api/permisos", rolesController.getPermissions);
+
+  /**
+   * @route POST /api/roles
+   * @desc Crear un nuevo rol
+   * @access Private (Admin)
+   */
+  router.post("/api/roles", authController.verificarUsuario, rolesController.createRole);
+
+  /**
+   * @route PUT /api/roles/:name
+   * @desc Actualizar un rol
+   * @access Private (Admin)
+   */
+  router.put("/api/roles/:name", authController.verificarUsuario, rolesController.updateRole);
+
+  /**
+   * @route DELETE /api/roles/:name
+   * @desc Eliminar un rol
+   * @access Private (Admin)
+   */
+  router.delete("/api/roles/:name", authController.verificarUsuario, rolesController.deleteRole);
+
+  /**
+   * @route POST /api/roles/:userId/assign
+   * @desc Asignar rol a usuario
+   * @access Private (Admin)
+   */
+  router.post("/api/roles/:userId/assign", authController.verificarUsuario, rolesController.assignRole);
+
+  /**
+   * @route POST /api/permisos/verificar
+   * @desc Verificar permisos del usuario actual
+   * @access Private
+   */
+  router.post("/api/permisos/verificar", authController.verificarUsuario, rolesController.checkPermission);
 
   return router;
 };
