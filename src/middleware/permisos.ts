@@ -6,7 +6,6 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import type { PermissionName } from '../services/roles/types.js';
-import { getRolePermissions } from '../services/roles/mongodbController.js';
 
 /**
  * Tipos de error de permisos

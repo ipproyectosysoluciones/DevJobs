@@ -72,7 +72,7 @@ export function trackEvent(req: Request, res: Response): void {
  * @param {Response} res - Response de Express
  * @returns {void}
  */
-export function getDashboard(req: Request, res: Response): void {
+export function getDashboard(_req: Request, res: Response): void {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -102,7 +102,7 @@ export function getDashboard(req: Request, res: Response): void {
  * @param {Response} res - Response de Express
  * @returns {void}
  */
-export function getUserMetrics(req: Request, res: Response): void {
+export function getUserMetrics(_req: Request, res: Response): void {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -138,7 +138,7 @@ export function getUserMetrics(req: Request, res: Response): void {
  * @param {Response} res - Response de Express
  * @returns {void}
  */
-export function getJobMetrics(req: Request, res: Response): void {
+export function getJobMetrics(_req: Request, res: Response): void {
   const jobViewEvents = events.filter(e => e.eventType === 'job_view');
   const jobApplyEvents = events.filter(e => e.eventType === 'job_apply');
 

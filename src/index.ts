@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 
 // Manejo de errores no捕获ados
-process.on("unhandledRejection", (reason, promise) => {
+process.on("unhandledRejection", (reason, _promise) => {
   console.error("❌ Unhandled Rejection:", reason);
 });
 
@@ -22,7 +22,6 @@ import session from "express-session";
 import flash from "connect-flash";
 import createError from "http-errors";
 import passport from "./config/passport.js";
-import { body, validationResult } from "express-validator";
 
 // Importar configuración de la base de datos
 import conectarDB from "./config/db.js";
@@ -73,7 +72,7 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
 
 app.use("/", (await import("./routes/index.js")).default());
 
-app.use((req: Request, _res: Response, next: NextFunction): void => {
+app.use((_req: Request, _res: Response, next: NextFunction): void => {
   next(createError(404, "No Encontrado"));
 });
 

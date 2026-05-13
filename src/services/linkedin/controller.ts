@@ -24,7 +24,7 @@ const linkedinUsers: Map<string, LinkedInUserData> = new Map();
  * @param {Response} res - Response de Express
  * @returns {void}
  */
-export function getAuthorizationUrl(req: Request, res: Response): void {
+export function getAuthorizationUrl(_req: Request, res: Response): void {
   const clientId = process.env.LINKEDIN_CLIENT_ID;
   const redirectUri = process.env.LINKEDIN_CALLBACK_URL || 'http://localhost:3000/api/linkedin/callback';
   
@@ -62,7 +62,7 @@ export function getAuthorizationUrl(req: Request, res: Response): void {
  */
 export async function handleCallback(req: Request, res: Response): Promise<void> {
   try {
-    const { code, state, error } = req.query;
+    const { code, error } = req.query;
 
     if (error) {
       res.status(400).json({

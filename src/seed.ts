@@ -3,13 +3,8 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import slug from "slug";
 import shortid from "shortid";
-import path from "path";
-import { fileURLToPath } from "url";
 
 dotenv.config({ path: ".env" });
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Modelos
 const usuarioSchema = new mongoose.Schema({

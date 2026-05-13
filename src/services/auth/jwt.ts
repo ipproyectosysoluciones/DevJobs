@@ -129,8 +129,6 @@ class JWTService {
       };
     }
 
-    const newToken = this.generateToken(payload);
-    
     return {
       valid: true,
       payload: {
