@@ -15,7 +15,15 @@ export interface IUsuario {
   token?: string;
   /** Fecha de expiración del token (opcional) */
   expira?: Date;
+  /** Rol del usuario / User role */
+  role?: RoleName;
 }
+
+/**
+ * Nombres de roles disponibles
+ * @en Available role names
+ */
+export type RoleName = 'admin' | 'employer' | 'job_seeker' | 'premium' | 'moderator';
 
 /**
  * Tipo para crear un nuevo usuario

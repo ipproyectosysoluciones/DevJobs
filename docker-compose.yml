@@ -1,15 +1,4 @@
-/**
- * @fileoverview Docker Compose configuration for DevJobs
- * @fileoverview Configuración de Docker Compose para DevJobs
- * @module docker-compose
- * 
- * Services included:
- * - devjobs: Backend Node.js application
- * - mongodb: Database
- * - redis: Cache and sessions
- * - builderbot: Chatbot service
- * - nginx: Reverse proxy (optional)
- */
+version: '3.8'
 
 services:
   # ============================================
@@ -58,14 +47,13 @@ services:
     container_name: devjobs-mongodb
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "27018:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:-admin}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-devjobs123}
       - MONGO_INITDB_DATABASE=devjobs
     volumes:
       - mongodb_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     networks:
       - devjobs-network
     healthcheck:
@@ -83,7 +71,7 @@ services:
     container_name: devjobs-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6380:6379"
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
@@ -96,24 +84,28 @@ services:
       retries: 5
 
   # ============================================
-  # BuilderBot Chat Service
+  # BuilderBot Chat Service (WhatsApp + AI)
   # ============================================
   builderbot:
-    image: node:21-alpine
+    build:
+      context: ./builderbot
+      dockerfile: Dockerfile
     container_name: devjobs-builderbot
     restart: unless-stopped
-    working_dir: /app
     ports:
       - "3008:3008"
     environment:
       - NODE_ENV=production
       - PORT=3008
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - DATABASE_PROVIDER=memory
-      - META_TOKEN=${META_TOKEN:-}
-      - META_PHONE_ID=${META_PHONE_ID:-}
+      - OPENAI_PROJECT=${OPENAI_PROJECT:-}
+      - MONGO_DB_URI=mongodb://admin:devjobs123@mongodb:27017/devjobs
+      - MONGO_DB_NAME=builderbot
     volumes:
-      - builderbot_sessions:/app/bot_sessions
+      - ./builderbot/sessions:/app/bot_sessions:rw
+    depends_on:
+      mongodb:
+        condition: service_healthy
     networks:
       - devjobs-network
     healthcheck:
@@ -123,44 +115,12 @@ services:
       retries: 3
       start_period: 60s
 
-  # ============================================
-  # Nginx Reverse Proxy (Optional)
-  # ============================================
-  # nginx:
-  #   image: nginx:alpine
-  #   container_name: devjobs-nginx
-  #   restart: unless-stopped
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - ./ssl:/etc/nginx/ssl:ro
-  #   depends_on:
-  #     - devjobs
-  #   networks:
-  #     - devjobs-network
-
-# ============================================
-# Networks
-# ============================================
 networks:
   devjobs-network:
     driver: bridge
 
-# ============================================
-# Volumes
-# ============================================
 volumes:
   mongodb_data:
     driver: local
   redis_data:
     driver: local
-  builderbot_sessions:
-    driver: local
-
-# ============================================
-# Development Configuration
-# ============================================
-# Para desarrollo, usar:
-# docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d

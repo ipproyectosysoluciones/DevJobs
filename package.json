@@ -18,6 +18,7 @@
   "author": "Bladimir Gerson Parra Bermudez",
   "license": "MIT",
   "dependencies": {
+    "@types/socket.io": "^3.0.2",
     "axios": "^1.16.0",
     "bcryptjs": "^3.0.3",
     "connect-flash": "^0.1.1",
@@ -38,6 +39,7 @@
     "passport-local": "^1.0.0",
     "shortid": "^2.2.17",
     "slug": "^11.0.1",
+    "socket.io": "^4.8.3",
     "tsx": "^4.21.0"
   },
   "devDependencies": {

@@ -123,8 +123,8 @@ export interface AuthResponse {
 export interface JWTConfig {
   /** Algoritmo de firma | Signing algorithm */
   algorithm: 'RS256' | 'HS256';
-  /** Tiempo de expiración | Expiration time (must be string like "24h") */
-  expiresIn: string;
+  /** Tiempo de expiración | Expiration time (can be number of seconds or string like "24h") */
+  expiresIn: string | number;
   /** Emisor del token | Token issuer */
   issuer: string;
   /** Audiencia del token | Token audience */

@@ -46,7 +46,7 @@ class JWTService {
   generateToken(payload: Omit<TokenPayload, 'iat' | 'exp'>): string {
     const options: jwt.SignOptions = {
       algorithm: this.config.algorithm,
-      expiresIn: this.config.expiresIn,
+      expiresIn: this.config.expiresIn as string | number,
       issuer: this.config.issuer,
       audience: this.config.audience,
     };

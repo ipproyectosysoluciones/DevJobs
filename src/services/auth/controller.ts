@@ -13,6 +13,7 @@ import type {
   AuthResponse,
   AuthUser 
 } from './types.js';
+import type { TokenPayload, Permission } from '../../types/auth.types';
 
 // Simulamos una base de datos de usuarios
 // En producción, esto würde von MongoDB komen
@@ -68,6 +69,16 @@ const users: Map<string, AuthUser & { password: string }> = new Map();
  *         description: Datos inválidos o usuario ya existe
  *       500:
  *         description: Error interno del servidor
+ * 
+ * @example_es
+ * // Solicitud: POST /api/auth/register
+ * // Cuerpo: { email: "usuario@ejemplo.com", password: "miClave123", name: "Juan Pérez", role: "job_seeker" }
+ * // Respuesta 201: { token: "jwt.token.here", user: { id: "123", email: "usuario@ejemplo.com", name: "Juan Pérez", role: "job_seeker" } }
+ * 
+ * @example_en
+ * // Request: POST /api/auth/register
+ * // Body: { email: "user@example.com", password: "myPassword123", name: "John Doe", role: "job_seeker" }
+ * // Response 201: { token: "jwt.token.here", user: { id: "123", email: "user@example.com", name: "John Doe", role: "job_seeker" } }
  */
 export async function register(req: Request, res: Response): Promise<void> {
   try {
@@ -111,7 +122,9 @@ export async function register(req: Request, res: Response): Promise<void> {
     const jwtService = getJWTService();
     const token = jwtService.generateToken({
       userId: user.id,
+      _id: user.id, // Alias for compatibility
       email: user.email,
+      nombre: user.name,
       role: user.role,
       permissions: getPermissionsByRole(user.role),
     });
@@ -172,6 +185,18 @@ export async function register(req: Request, res: Response): Promise<void> {
  *         description: Credenciales inválidas
  *       500:
  *         description: Error interno del servidor
+ * 
+ * @example_es
+ * // Solicitud: POST /api/auth/login
+ * // Cuerpo: { email: "usuario@ejemplo.com", password: "miClave123" }
+ * // Respuesta 200: { token: "jwt.token.here", user: { id: "123", email: "usuario@ejemplo.com", name: "Juan Pérez", role: "job_seeker" } }
+ * // Respuesta 401: { error: "Credenciales inválidas", message: "Invalid credentials" }
+ * 
+ * @example_en
+ * // Request: POST /api/auth/login
+ // Body: { email: "user@example.com", password: "myPassword123" }
+ // Response 200: { token: "jwt.token.here", user: { id: "123", email: "user@example.com", name: "John Doe", role: "job_seeker" } }
+ // Response 401: { error: "Invalid credentials", message: "Invalid credentials" }
  */
 export async function login(req: Request, res: Response): Promise<void> {
   try {
@@ -219,7 +244,9 @@ export async function login(req: Request, res: Response): Promise<void> {
     const jwtService = getJWTService();
     const token = jwtService.generateToken({
       userId: user.id,
+      _id: user.id, // Alias for compatibility
       email: user.email,
+      nombre: user.name,
       role: user.role,
       permissions: getPermissionsByRole(user.role),
     });
@@ -264,6 +291,16 @@ export async function login(req: Request, res: Response): Promise<void> {
  *         description: Perfil del usuario
  *       401:
  *         description: No autenticado
+ * 
+ * @example_es
+ * // Solicitud: GET /api/auth/profile (con header Authorization: Bearer jwt.token)
+ * // Respuesta 200: { id: "123", email: "usuario@ejemplo.com", name: "Juan Pérez", role: "job_seeker", isActive: true, createdAt: "2026-05-10T..." }
+ * // Respuesta 401: { error: "No autenticado", message: "Not authenticated" }
+ * 
+ * @example_en
+ * // Request: GET /api/auth/profile (with header Authorization: Bearer jwt.token)
+ * // Response 200: { id: "123", email: "user@example.com", name: "John Doe", role: "job_seeker", isActive: true, createdAt: "2026-05-10T..." }
+ * // Response 401: { error: "Not authenticated", message: "Not authenticated" }
  */
 export function getProfile(req: Request, res: Response): void {
   const authUser = (req as any).user;
@@ -294,15 +331,33 @@ export function getProfile(req: Request, res: Response): void {
  * @function getPermissionsByRole
  * @description Retorna los permisos asociados a un rol
  * @param {string} role - Rol del usuario
- * @returns {string[]} Array de permisos
+ * @returns {Permission[]} Array de permisos
  */
-function getPermissionsByRole(role: string): string[] {
-  const rolePermissions: Record<string, string[]> = {
-    admin: ['*'],
-    employer: ['jobs:create', 'jobs:update', 'jobs:read', 'applications:read'],
-    job_seeker: ['jobs:read', 'applications:create'],
-    premium: ['jobs:read', 'jobs:premium', 'applications:create', 'analytics:read'],
-    moderator: ['users:manage', 'content:moderate', 'jobs:read', 'applications:read'],
+function getPermissionsByRole(role: string): Permission[] {
+  const rolePermissions: Record<string, Permission[]> = {
+    admin: ['*' as Permission],
+    employer: [
+      'jobs:create' as Permission, 
+      'jobs:update' as Permission, 
+      'jobs:read' as Permission, 
+      'applications:read' as Permission
+    ],
+    job_seeker: [
+      'jobs:read' as Permission, 
+      'applications:create' as Permission
+    ],
+    premium: [
+      'jobs:read' as Permission, 
+      'jobs:premium' as Permission, 
+      'applications:create' as Permission, 
+      'analytics:read' as Permission
+    ],
+    moderator: [
+      'users:manage' as Permission, 
+      'content:moderate' as Permission, 
+      'jobs:read' as Permission, 
+      'applications:read' as Permission
+    ],
   };
 
   return rolePermissions[role] || [];
