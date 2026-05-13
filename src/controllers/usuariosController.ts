@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
  * Configuración de multer para uploads de imágenes de perfil
  * @en Multer configuration for profile image uploads
  */
-const configuracionMulter = {
+const configuracionMulter: multer.Options = {
   limits: { fileSize: 100000 },
   storage: multer.diskStorage({
     destination: (_req, _file, cb): void => {
