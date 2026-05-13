@@ -69,7 +69,7 @@ usuariosSchema.pre("save", async function (): Promise<void> {
  * Middleware post-save para manejar errores de duplicado
  * @en Post-save middleware to handle duplicate errors
  */
-usuariosSchema.post("save", (error, _doc, next): void => {
+usuariosSchema.post<Document>("save", (error: any, _doc: any, next: (err?: any) => void): void => {
   if (error.name === "MongoError" && error.code === 11000) {
     next(new Error("Ese correo ya está registrado | That email is already registered"));
   } else {

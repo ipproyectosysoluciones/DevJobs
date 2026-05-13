@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
  * Configuración de Multer para uploads de CV
  * @en Multer configuration for CV uploads
  */
-const configuracionMulter = {
+const configuracionMulter: multer.Options = {
   limits: { fileSize: 100000 },
   storage: multer.diskStorage({
     destination: (_req, _file, cb): void => {
