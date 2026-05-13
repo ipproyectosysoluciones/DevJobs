@@ -89,3 +89,9 @@ yarn.lock
 # =======================
 server.log
 *.orig
+
+# =======================
+# LOCAL TOOLS
+# =======================
+.windsurf/
+builderbot-temp/
