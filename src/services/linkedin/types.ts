@@ -167,3 +167,23 @@ export interface OAuthTokenResponse {
   /** Ámbito del token | Token scope */
   scope: string;
 }
+
+/**
+ * Respuesta cruda de la API de LinkedIn (OpenID Connect)
+ * @interface LinkedInProfileResponse
+ * @description Raw response from LinkedIn's /userinfo endpoint
+ */
+export interface LinkedInProfileResponse {
+  /** ID único del usuario | User unique identifier */
+  sub: string;
+  /** Nombre/s | Given name(s) */
+  given_name: string;
+  /** Apellido/s | Family name(s) */
+  family_name: string;
+  /** Nombre completo | Full name */
+  name: string;
+  /** Correo electrónico | Email address */
+  email?: string;
+  /** URL de la imagen de perfil | Profile picture URL */
+  picture?: string;
+}

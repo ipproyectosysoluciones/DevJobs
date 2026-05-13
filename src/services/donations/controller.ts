@@ -109,7 +109,7 @@ export async function createDonation(req: Request, res: Response): Promise<void>
  * @returns {void}
  */
 export function confirmDonation(req: Request, res: Response): void {
-  const { donationId } = req.params;
+  const donationId = req.params.donationId as string;
   const { transactionId, status } = req.body;
 
   const donation = donations.get(donationId);

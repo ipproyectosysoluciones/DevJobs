@@ -116,7 +116,7 @@ export async function getJobs(req: Request, res: Response): Promise<void> {
  * @returns {void}
  */
 export function getJobById(req: Request, res: Response): void {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const job = jobs.get(id);
 
   if (!job) {
@@ -196,7 +196,7 @@ export async function createJob(req: Request, res: Response): Promise<void> {
  * @returns {void}
  */
 export function updateJob(req: Request, res: Response): void {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const jobData = req.body;
   const user = (req as any).user;
 
@@ -241,7 +241,7 @@ export function updateJob(req: Request, res: Response): void {
  * @returns {void}
  */
 export function deleteJob(req: Request, res: Response): void {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const user = (req as any).user;
 
   const job = jobs.get(id);
@@ -276,7 +276,7 @@ export function deleteJob(req: Request, res: Response): void {
  * @returns {void}
  */
 export function applyToJob(req: Request, res: Response): void {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const applicationData = req.body as ApplyJobRequest;
   const user = (req as any).user;
 

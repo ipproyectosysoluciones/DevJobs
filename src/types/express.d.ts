@@ -10,7 +10,6 @@
  * @en Express type extensions
  * @es Extensiones de tipos para Express
  */
-
 declare global {
   namespace Express {
     /**
@@ -19,7 +18,7 @@ declare global {
      * @es Usuario autenticado en la sesión
      */
     interface User {
-      _id: string; // Changed from Types.ObjectId to string for consistency with our AuthUser
+      _id: string;
       nombre: string;
       email: string;
       imagen?: string;
@@ -35,6 +34,24 @@ declare global {
       flash(): { [key: string]: string[] };
       flash(type: string): string[];
       flash(type: string, message: string | string[]): any;
+    }
+
+    /**
+     * Función next de Express
+     * @en Express next function
+     * @es Función next de Express
+     */
+    type NextFunction = (err?: unknown) => void;
+
+    /**
+     * Response de Express (versión simplificada para rutas)
+     * @en Express Response (simplified for routes)
+     * @es Response de Express (versión simplificada para rutas)
+     */
+    interface Response {
+      status(code: number): Response;
+      json(body?: unknown): void;
+      send(body?: unknown): Response;
     }
   }
 }

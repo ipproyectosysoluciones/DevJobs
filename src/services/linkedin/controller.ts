@@ -7,6 +7,7 @@
 import type { Request, Response } from 'express';
 import type { 
   LinkedInProfile, 
+  LinkedInProfileResponse,
   LinkedInJob,
   LinkedInUserData,
   OAuthTokenResponse 
@@ -302,7 +303,7 @@ export async function searchJobs(req: Request, res: Response): Promise<void> {
  * @returns {void}
  */
 export function getJobDetails(req: Request, res: Response): void {
-  const { jobId } = req.params;
+  const jobId = req.params.jobId as string;
 
   // Simular datos del empleo
   const job: LinkedInJob = {
@@ -386,16 +387,16 @@ async function getLinkedInProfile(accessToken: string): Promise<LinkedInProfile 
       return null;
     }
 
-    const data = await response.json();
+    const data = await response.json() as LinkedInProfileResponse;
 
     return {
       id: data.sub,
       firstName: data.given_name,
       lastName: data.family_name,
       formattedName: data.name,
-      email: data.email,
+      email: data.email ?? '',
       profileUrl: `https://www.linkedin.com/in/${data.sub}`,
-      pictureUrl: data.picture,
+      pictureUrl: data.picture ?? '',
     };
   } catch (error) {
     console.error('Error fetching LinkedIn profile:', error);

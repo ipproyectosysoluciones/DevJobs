@@ -56,7 +56,7 @@ export function getChats(req: Request, res: Response): void {
  * @returns {void}
  */
 export function getChatById(req: Request, res: Response): void {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const user = (req as any).user;
 
   const chat = chats.get(id);
@@ -180,7 +180,7 @@ export async function createChat(req: Request, res: Response): Promise<void> {
  * @returns {void}
  */
 export function sendMessage(req: Request, res: Response): void {
-  const { chatId } = req.params;
+  const chatId = req.params.chatId as string;
   const messageData = req.body as SendMessageRequest;
   const user = (req as any).user;
 
@@ -236,8 +236,9 @@ export function sendMessage(req: Request, res: Response): void {
  * @returns {void}
  */
 export function getMessages(req: Request, res: Response): void {
-  const { chatId } = req.params;
-  const { limit = 50, before } = req.query;
+  const chatId = req.params.chatId as string;
+  const limit = req.query.limit as string ?? '50';
+  const before = req.query.before as string | undefined;
   const user = (req as any).user;
 
   const chat = chats.get(chatId);
@@ -284,7 +285,7 @@ export function getMessages(req: Request, res: Response): void {
  * @returns {void}
  */
 export function markAsRead(req: Request, res: Response): void {
-  const { chatId } = req.params;
+  const chatId = req.params.chatId as string;
   const user = (req as any).user;
 
   const chat = chats.get(chatId);

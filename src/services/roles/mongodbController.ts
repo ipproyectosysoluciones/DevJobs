@@ -31,7 +31,7 @@ export async function getRoles(req: Request, res: Response): Promise<void> {
 export async function getRoleByName(req: Request, res: Response): Promise<void> {
   try {
     const { name } = req.params;
-    const role = await Role.findOne({ name, isActive: true }).lean();
+    const role = await Role.findOne({ name: name as RoleName, isActive: true }).lean();
     
     if (!role) {
       res.status(404).json({
@@ -68,7 +68,7 @@ export async function createRole(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const existingRole = await Role.findOne({ name });
+    const existingRole = await Role.findOne({ name: name as RoleName });
     if (existingRole) {
       res.status(400).json({
         error: 'El rol ya existe',
@@ -113,7 +113,7 @@ export async function updateRole(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const role = await Role.findOne({ name });
+    const role = await Role.findOne({ name: name as RoleName });
     
     if (!role) {
       res.status(404).json({
@@ -163,7 +163,7 @@ export async function deleteRole(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const role = await Role.findOne({ name });
+    const role = await Role.findOne({ name: name as RoleName });
     
     if (!role) {
       res.status(404).json({
@@ -199,7 +199,7 @@ export async function deleteRole(req: Request, res: Response): Promise<void> {
  * @function getRolePermissions
  */
 export async function getRolePermissions(roleName: string): Promise<PermissionName[]> {
-  const role = await Role.findOne({ name: roleName, isActive: true }).lean();
+  const role = await Role.findOne({ name: roleName as RoleName, isActive: true }).lean();
   
   if (!role) {
     return [];
@@ -280,7 +280,7 @@ export async function assignRole(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const role = await Role.findOne({ name: roleName, isActive: true });
+    const role = await Role.findOne({ name: roleName as RoleName, isActive: true });
     
     if (!role) {
       res.status(404).json({
@@ -289,7 +289,7 @@ export async function assignRole(req: Request, res: Response): Promise<void> {
       });
       return;
     }
-
+    
     // Importar modelo de usuario dinámicamente
     const Usuario = (await import('../../models/Usuarios.js')).default;
     const usuario = await Usuario.findById(userId);
@@ -416,7 +416,7 @@ export async function initializeSystemRoles(): Promise<void> {
   ];
 
   for (const roleData of systemRoles) {
-    const existing = await Role.findOne({ name: roleData.name });
+    const existing = await Role.findOne({ name: roleData.name as RoleName });
     
     if (!existing) {
       await Role.create({
