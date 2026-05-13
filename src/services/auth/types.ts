@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tipos y interfaces para el servicio de autenticación
+ * @fileoverview Tipos e interfaces para el servicio de autenticación
  * @fileoverview Types and interfaces for authentication service
  * @module services/auth/types
  */
@@ -50,12 +50,19 @@ export type Permission =
  * Payload del token JWT
  * @interface TokenPayload
  * @description Payload contenido en el token JWT
+ * 
+ * @note Este payload es un subconjunto de AuthUser (sin información sensible)
+ *       y incluye campos adicionales necesarios para la autorización.
  */
 export interface TokenPayload {
   /** ID del usuario | User ID */
   userId: string;
+  /** Alias para compatibilidad con Express.User._id | Alias for Express.User._id compatibility */
+  _id: string;
   /** Correo electrónico | Email address */
   email: string;
+  /** Nombre completo del usuario | User full name */
+  nombre: string;
   /** Rol del usuario | User role */
   role: UserRole;
   /** Permisos del usuario | User permissions */
@@ -97,7 +104,7 @@ export interface LoginRequest {
 /**
  * Respuesta de autenticación
  * @interface AuthResponse
- * @description Respuesta после успешной аутентификации
+ * @description Respuesta después de una autenticación exitosa
  */
 export interface AuthResponse {
   /** Token de acceso JWT | JWT access token */
@@ -116,7 +123,7 @@ export interface AuthResponse {
 export interface JWTConfig {
   /** Algoritmo de firma | Signing algorithm */
   algorithm: 'RS256' | 'HS256';
-  /** Tiempo de expiración | Expiration time */
+  /** Tiempo de expiración | Expiration time (must be string like "24h") */
   expiresIn: string;
   /** Emisor del token | Token issuer */
   issuer: string;

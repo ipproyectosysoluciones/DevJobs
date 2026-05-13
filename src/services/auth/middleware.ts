@@ -6,7 +6,7 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import { getJWTService } from './jwt.js';
-import type { TokenPayload } from './types.js';
+import type { TokenPayload, Permission } from '../../types/auth.types';
 
 /**
  * Interfaz extendida de Request para incluir el usuario autenticado
@@ -15,7 +15,7 @@ import type { TokenPayload } from './types.js';
  */
 export interface AuthenticatedRequest extends Request {
   /** Usuario autenticado | Authenticated user */
-  user?: TokenPayload;
+  user: TokenPayload | null;
 }
 
 /**
@@ -105,13 +105,13 @@ export function authorize(...roles: string[]) {
  * Middleware para verificar permisos específicos
  * @function checkPermission
  * @description Verifica que el usuario tenga el permiso requerido
- * @param {string[]} permissions - Permisos requeridos
+ * @param {Permission[]} permissions - Permisos requeridos
  * @returns {Function} Función middleware de Express
  * 
  * @example
  * router.post('/jobs', authenticate, checkPermission('jobs:create'), createJob);
  */
-export function checkPermission(...permissions: string[]) {
+export function checkPermission(...permissions: Permission[]) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({
@@ -122,7 +122,7 @@ export function checkPermission(...permissions: string[]) {
     }
 
     const hasPermission = permissions.every(permission => 
-      req.user?.permissions.includes(permission as any)
+      req.user?.permissions.includes(permission)
     );
 
     if (!hasPermission) {
