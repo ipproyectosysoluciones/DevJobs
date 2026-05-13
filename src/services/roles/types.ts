@@ -21,6 +21,12 @@ export interface Role {
   isSystemRole: boolean;
   /** Indica si está activo | Whether active */
   isActive: boolean;
+  /** Conteo de usuarios con este rol | User count for this role */
+  userCount?: number;
+  /** Fecha de creación | Creation date */
+  createdAt?: Date;
+  /** Fecha de última actualización | Last update date */
+  updatedAt?: Date;
 }
 
 /**
@@ -146,6 +152,43 @@ export interface RoleChangeRequest {
 }
 
 /**
+ * Solicitud de creación de rol
+ * @interface CreateRoleRequest
+ */
+export interface CreateRoleRequest {
+  /** Nombre del rol | Role name */
+  name: RoleName;
+  /** Descripción del rol | Role description */
+  description: string;
+  /** Lista de nombres de permisos | Permission names list */
+  permissions: PermissionName[];
+}
+
+/**
+ * Solicitud de actualización de rol
+ * @interface UpdateRoleRequest
+ */
+export interface UpdateRoleRequest {
+  /** Permisos a actualizar | Permissions to update */
+  permissions?: PermissionName[];
+  /** Descripción actualizada | Updated description */
+  description?: string;
+  /** Estado activo/inactivo | Active state */
+  isActive?: boolean;
+}
+
+/**
+ * Resultado de verificación de permisos
+ * @interface PermissionCheckResult
+ */
+export interface PermissionCheckResult {
+  /** Tiene el permiso solicitado | Has the requested permission */
+  hasPermission: boolean;
+  /** Lista de permisos faltantes | Missing permissions */
+  missingPermissions: PermissionName[];
+}
+
+/**
  * Configuración de permisos por defecto
  * @interface DefaultPermissions
  */
@@ -176,12 +219,3 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<RoleName, PermissionName[]> = {
   ],
 };
 
-export type {
-  Role,
-  RoleName,
-  Permission,
-  PermissionCategory,
-  PermissionName,
-  RoleAssignment,
-  RoleChangeRequest,
-};

@@ -14,8 +14,8 @@ import type {
   PermissionCheckResult,
   RoleName,
   PermissionName,
-  DEFAULT_ROLE_PERMISSIONS
 } from './types.js';
+import { DEFAULT_ROLE_PERMISSIONS } from './types.js';
 
 // Base de datos en memoria (en producción, usar MongoDB)
 const roles: Map<string, Role> = new Map();
@@ -101,7 +101,7 @@ export function createRole(req: Request, res: Response): void {
     name: roleData.name,
     description: roleData.description,
     permissions: rolePermissions,
-    isSystem: false,
+    isSystemRole: false,
     isActive: true,
     userCount: 0,
     createdAt: new Date(),
@@ -143,7 +143,7 @@ export function updateRole(req: Request, res: Response): void {
     return;
   }
 
-  if (role.isSystem) {
+  if (role.isSystemRole) {
     res.status(400).json({
       error: 'No se puede modificar un rol del sistema',
       message: 'Cannot modify system role',
@@ -203,7 +203,7 @@ export function deleteRole(req: Request, res: Response): void {
     return;
   }
 
-  if (role.isSystem) {
+  if (role.isSystemRole) {
     res.status(400).json({
       error: 'No se puede eliminar un rol del sistema',
       message: 'Cannot delete system role',
@@ -410,7 +410,7 @@ function initializeRolesAndPermissions(): void {
       name: 'admin',
       description: 'Administrador del sistema con acceso completo',
       permissions: allPermissions,
-      isSystem: true,
+      isSystemRole: true,
       isActive: true,
       userCount: 1,
       createdAt: new Date(),
@@ -426,7 +426,7 @@ function initializeRolesAndPermissions(): void {
         'chat:create', 'chat:read', 'chat:delete',
       ].includes(p.name)
       ),
-      isSystem: true,
+      isSystemRole: true,
       isActive: true,
       userCount: 0,
       createdAt: new Date(),
@@ -439,7 +439,7 @@ function initializeRolesAndPermissions(): void {
       permissions: allPermissions.filter(p => 
         ['jobs:read', 'applications:create', 'applications:read', 'chat:create', 'chat:read'].includes(p.name)
       ),
-      isSystem: true,
+      isSystemRole: true,
       isActive: true,
       userCount: 0,
       createdAt: new Date(),
@@ -452,7 +452,7 @@ function initializeRolesAndPermissions(): void {
       permissions: allPermissions.filter(p => 
         ['jobs:read', 'jobs:premium', 'applications:create', 'applications:read', 'chat:create', 'chat:read', 'analytics:read'].includes(p.name)
       ),
-      isSystem: true,
+      isSystemRole: true,
       isActive: true,
       userCount: 0,
       createdAt: new Date(),
@@ -468,7 +468,7 @@ function initializeRolesAndPermissions(): void {
         'chat:read', 'chat:delete', 'chat:moderate', 'content:moderate',
       ].includes(p.name)
       ),
-      isSystem: true,
+      isSystemRole: true,
       isActive: true,
       userCount: 0,
       createdAt: new Date(),
