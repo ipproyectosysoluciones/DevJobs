@@ -1,6 +1,6 @@
 import mongoose, { Schema, type Document } from "mongoose";
 import bcrypt from "bcryptjs";
-import type { IUsuario, RoleName } from "../types/usuario.js";
+import type { IUsuario } from "../types/usuario.js";
 
 /**
  * Interfaz del documento Usuario

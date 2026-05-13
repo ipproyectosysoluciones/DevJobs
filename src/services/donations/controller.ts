@@ -28,7 +28,7 @@ seedDonationPlans();
  * @param {Response} res - Response de Express
  * @returns {void}
  */
-export function getPlans(req: Request, res: Response): void {
+export function getPlans(_req: Request, res: Response): void {
   const activePlans = Array.from(donationPlans.values())
     .filter(plan => plan.isActive)
     .sort((a, b) => a.order - b.order);
@@ -165,7 +165,7 @@ export function getMyDonations(req: Request, res: Response): void {
  * @param {Response} res - Response de Express
  * @returns {void}
  */
-export function getStats(req: Request, res: Response): void {
+export function getStats(_req: Request, res: Response): void {
   const allDonations = Array.from(donations.values())
     .filter(d => d.status === 'completed');
 

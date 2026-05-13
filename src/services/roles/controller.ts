@@ -15,7 +15,6 @@ import type {
   RoleName,
   PermissionName,
 } from './types.js';
-import { DEFAULT_ROLE_PERMISSIONS } from './types.js';
 
 // Base de datos en memoria (en producción, usar MongoDB)
 const roles: Map<string, Role> = new Map();
@@ -32,7 +31,7 @@ initializeRolesAndPermissions();
  * @param {Response} res - Response de Express
  * @returns {void}
  */
-export function getRoles(req: Request, res: Response): void {
+export function getRoles(_req: Request, res: Response): void {
   const allRoles = Array.from(roles.values()).filter(r => r.isActive);
   res.json(allRoles);
 }
@@ -223,7 +222,7 @@ export function deleteRole(req: Request, res: Response): void {
  * @param {Response} res - Response de Express
  * @returns {void}
  */
-export function getPermissions(req: Request, res: Response): void {
+export function getPermissions(_req: Request, res: Response): void {
   const allPermissions = Array.from(permissions.values());
   res.json(allPermissions);
 }

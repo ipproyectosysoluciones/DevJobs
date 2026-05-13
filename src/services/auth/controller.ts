@@ -13,7 +13,8 @@ import type {
   AuthResponse,
   AuthUser 
 } from './types.js';
-import type { TokenPayload, Permission } from '../../types/auth.types';
+import type { Permission } from '../../types/auth.types';
+
 
 // Simulamos una base de datos de usuarios
 // En producción, esto würde von MongoDB komen

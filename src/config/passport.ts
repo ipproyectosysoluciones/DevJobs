@@ -1,7 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import mongoose from "mongoose";
-import type { IUsuarioDocument } from "../models/Usuarios";
 
 const Passport = passport as any;
 

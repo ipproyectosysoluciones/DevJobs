@@ -58,7 +58,7 @@ export const cerrarSesion = (req: Request, res: Response): void => {
 /**
  * Mostrar formulario para reestablecer password
  */
-export const formReestablecerPassword = (req: Request, res: Response): void => {
+export const formReestablecerPassword = (_req: Request, res: Response): void => {
   res.render("reestablecer-password", {
     nombrePagina: "Reestablece tu Password",
     tagline: "Si ya tienes una cuenta pero olvidaste tu password, coloca tu email",

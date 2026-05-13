@@ -12,7 +12,7 @@ import Role from '../../models/Role.js';
  * Obtiene todos los roles desde MongoDB
  * @function getRoles
  */
-export async function getRoles(req: Request, res: Response): Promise<void> {
+export async function getRoles(_req: Request, res: Response): Promise<void> {
   try {
     const allRoles = await Role.find({ isActive: true }).lean();
     res.json(allRoles);

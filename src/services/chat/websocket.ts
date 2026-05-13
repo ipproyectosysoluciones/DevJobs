@@ -7,7 +7,7 @@
 import { Server as SocketIOServer, type Socket } from 'socket.io';
 import type { Server as HTTPServer } from 'http';
 import type { TokenPayload } from '../auth/types.js';
-import type { Message, Participant } from './types.js';
+import type { Message } from './types.js';
 
 /**
  * Opciones de configuración del servidor WebSocket

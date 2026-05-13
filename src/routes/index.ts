@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router } from "express";
 import * as homeController from "../controllers/homeController.js";
 import * as vacantesController from "../controllers/vacantesController.js";
 import * as usuariosController from "../controllers/usuariosController.js";

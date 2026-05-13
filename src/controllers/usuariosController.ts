@@ -4,7 +4,6 @@ import shortid from "shortid";
 import path from "path";
 import { fileURLToPath } from "url";
 import { body, validationResult } from "express-validator";
-import type { IUsuarioDocument } from "../models/Usuarios";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -62,7 +61,7 @@ export const subirImagen = (req: Request, res: Response, next: NextFunction): vo
  * Mostrar formulario para crear cuenta
  * @en Show form to create account
  */
-export const formCrearCuenta = (req: Request, res: Response): void => {
+export const formCrearCuenta = (_req: Request, res: Response): void => {
   res.render("crear-cuenta", {
     nombrePagina: "Crea tu cuenta en devJobs | Create your account on devJobs",
     tagline:
@@ -125,7 +124,7 @@ export const crearUsuario = async (req: Request, res: Response): Promise<void> =
  * Mostrar formulario para iniciar sesión
  * @en Show form to sign in
  */
-export const formIniciarSesion = (req: Request, res: Response): void => {
+export const formIniciarSesion = (_req: Request, res: Response): void => {
   res.render("iniciar-sesion", {
     nombrePagina: "Iniciar Sesión devJobs | Sign In to devJobs",
   });

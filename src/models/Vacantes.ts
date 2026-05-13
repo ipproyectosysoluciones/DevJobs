@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, type Document, type Types } from "mongoose";
+import { Schema, model, type Document } from "mongoose";
 import slug from "slug";
 import shortid from "shortid";
 

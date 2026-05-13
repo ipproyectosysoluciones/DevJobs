@@ -24,7 +24,7 @@ export const tipoContrato = (seleccionado: string, opciones: any): string => {
   return result.replace(new RegExp(` value="${seleccionado}"`), '$& selected="selected"');
 };
 
-export const mostrarAlertas = (errores: Record<string, string[]> = {}, alertas: any): string => {
+export const mostrarAlertas = (errores: Record<string, string[]> = {}, _alertas: any): string => {
   const categoria = Object.keys(errores);
 
   if (!categoria.length) {

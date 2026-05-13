@@ -10,7 +10,6 @@ import type {
   CreateJobRequest, 
   ApplyJobRequest, 
   JobsResponse,
-  JobFilters,
   ApplicationStatus 
 } from './types.js';
 
