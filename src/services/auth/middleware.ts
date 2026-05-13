@@ -11,9 +11,9 @@ import type { TokenPayload, Permission } from '../../types/auth.types';
 /**
  * Interfaz extendida de Request para incluir el usuario autenticado
  * @interface AuthenticatedRequest
- * @description Request con datos del usuario autenticado
+ * @description Request con datos del usuario autenticado (uso interno, no extiende Request directamente para compatibilidad con strictNullChecks)
  */
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest {
   /** Usuario autenticado | Authenticated user */
   user: TokenPayload | null;
 }
@@ -30,10 +30,11 @@ export interface AuthenticatedRequest extends Request {
  * });
  */
 export function authenticate(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ): void {
+  const authReq = req as unknown as AuthenticatedRequest;
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -65,7 +66,7 @@ export function authenticate(
     return;
   }
 
-  req.user = result.payload;
+  authReq.user = result.payload ?? null;
   next();
 }
 
@@ -80,8 +81,9 @@ export function authenticate(
  * router.delete('/users/:id', authenticate, authorize(['admin']), deleteUser);
  */
 export function authorize(...roles: string[]) {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-    if (!req.user) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const authReq = req as unknown as AuthenticatedRequest;
+    if (!authReq.user) {
       res.status(401).json({
         error: 'No autenticado',
         message: 'Not authenticated',
@@ -89,10 +91,10 @@ export function authorize(...roles: string[]) {
       return;
     }
 
-    if (!roles.includes(req.user.role)) {
+    if (!roles.includes(authReq.user.role)) {
       res.status(403).json({
         error: 'No autorizado',
-        message: `Required roles: ${roles.join(', ')}. Your role: ${req.user.role}`,
+        message: `Required roles: ${roles.join(', ')}. Your role: ${authReq.user.role}`,
       });
       return;
     }
@@ -112,8 +114,9 @@ export function authorize(...roles: string[]) {
  * router.post('/jobs', authenticate, checkPermission('jobs:create'), createJob);
  */
 export function checkPermission(...permissions: Permission[]) {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-    if (!req.user) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const authReq = req as unknown as AuthenticatedRequest;
+    if (!authReq.user) {
       res.status(401).json({
         error: 'No autenticado',
         message: 'Not authenticated',
@@ -122,7 +125,7 @@ export function checkPermission(...permissions: Permission[]) {
     }
 
     const hasPermission = permissions.every(permission => 
-      req.user?.permissions.includes(permission)
+      authReq.user?.permissions.includes(permission)
     );
 
     if (!hasPermission) {
