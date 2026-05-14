@@ -47,6 +47,12 @@ Plataforma DevJobs - Portal de empleo con sistema de roles y permisos robusto.
 - WU2: Admin panel routes y vistas
 - WU3: Tests (53 total)
 
+### Sprint 4: Playwright + Dependency Cleanup ✅
+- WU1: Install @playwright/test v1.60.0 + chromium
+- WU2: Add playwright.config.ts + E2E tests
+- WU3: Remove esbuild (unused)
+- WU4: Verify pnpm tsc=0, vitest=53/53
+
 ---
 
 ## Estructura de Permisos
@@ -66,4 +72,4 @@ Plataforma DevJobs - Portal de empleo con sistema de roles y permisos robusto.
 - **Backend**: Express + Mongoose (MongoDB)
 - **Auth**: Passport.js (local) + JWT
 - **Frontend**: EJS templates
-- **Testing**: Jest (próximo)
+- **Testing**: Vitest (unit) + Playwright (E2E)
