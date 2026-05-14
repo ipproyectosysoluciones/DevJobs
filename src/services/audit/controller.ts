@@ -8,17 +8,38 @@ import type { Request, Response } from 'express';
 import AuditLog from '../../models/AuditLog.js';
 
 /**
+ * Validar action de auditoría
+ */
+function isValidAuditAction(action: string): boolean {
+  const validActions = ['role_changed', 'permission_changed', 'user_created', 'user_deleted', 'subscription_changed', 'login_failed', 'login_success', 'password_changed', 'profile_updated'];
+  return validActions.includes(action);
+}
+
+/**
  * Obtener logs de auditoría (admin)
  * @route GET /api/audit
  * @access Admin
  */
 export async function getAuditLogs(req: Request, res: Response): Promise<void> {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 50;
+    const page = Math.min(Math.max(parseInt(req.query.page as string) || 1, 1), 100);
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 50, 1), 100);
     const skip = (page - 1) * limit;
 
-    const { action, targetUserId, startDate, endDate } = req.query;
+    let { action, targetUserId, startDate, endDate } = req.query;
+
+    // Sanitizar action - solo permitir valores válidos
+    if (action && typeof action === 'string' && !isValidAuditAction(action)) {
+      action = undefined;
+    }
+
+    // Sanitizar targetUserId - validar formato ObjectId
+    if (targetUserId && typeof targetUserId === 'string') {
+      const objectIdRegex = /^[a-fA-F0-9]{24}$/;
+      if (!objectIdRegex.test(targetUserId)) {
+        targetUserId = undefined;
+      }
+    }
 
     const filter: Record<string, unknown> = {};
     if (action) filter.action = action;
