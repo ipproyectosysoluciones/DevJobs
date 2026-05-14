@@ -38,6 +38,10 @@ export const mostrarAlertas = (errores: Record<string, string[]> = {}, _alertas:
   return html;
 };
 
+export const includes = (array: unknown[], value: unknown): boolean => {
+  return Array.isArray(array) && array.includes(value);
+};
+
 export default {
   seleccionarSkills,
   tipoContrato,

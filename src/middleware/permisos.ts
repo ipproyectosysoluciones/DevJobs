@@ -6,6 +6,7 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import type { PermissionName } from '../services/roles/types.js';
+import { getRolePermissions } from '../services/roles/mongodbController.js';
 
 /**
  * Tipos de error de permisos
@@ -28,10 +29,11 @@ export interface PermissionCheckResult {
 }
 
 /**
- * Mapeo de roles a permisos por defecto
- * @en Default role to permission mapping
+ * Mapeo de nombres de roles válidos (para fallback de permisos locales
+ * cuando MongoDB no está disponible)
+ * @en Mapping of valid role names (for local fallback when MongoDB is unavailable)
  */
-const ROLE_PERMISSIONS: Record<string, PermissionName[]> = {
+const ROLE_PERMISSIONS_FALLBACK: Record<string, PermissionName[]> = {
   admin: ['*'],
   employer: [
     'jobs:create', 'jobs:read', 'jobs:update', 'jobs:delete',
@@ -59,13 +61,22 @@ const ROLE_PERMISSIONS: Record<string, PermissionName[]> = {
 };
 
 /**
- * Obtiene los permisos de un usuario según su rol
- * @en Get user permissions by role
+ * Obtiene los permisos de un usuario según su rol (MongoDB como source of truth)
+ * @en Get user permissions by role (MongoDB as source of truth)
  * @param {string} roleName - Nombre del rol
- * @returns {PermissionName[]} Lista de permisos
+ * @returns {Promise<PermissionName[]>} Lista de permisos
  */
-export function getUserPermissions(roleName: string): PermissionName[] {
-  return ROLE_PERMISSIONS[roleName] || [];
+export async function getUserPermissions(roleName: string): Promise<PermissionName[]> {
+  try {
+    const permissions = await getRolePermissions(roleName);
+    // Si MongoDB devuelve vacío, usar fallback local
+    if (permissions.length > 0) {
+      return permissions;
+    }
+  } catch {
+    // En caso de error de conexión, fallback local
+  }
+  return ROLE_PERMISSIONS_FALLBACK[roleName] || [];
 }
 
 /**
@@ -73,16 +84,16 @@ export function getUserPermissions(roleName: string): PermissionName[] {
  * @en Check if user has a specific permission
  * @param {string} roleName - Rol del usuario
  * @param {PermissionName} permission - Permiso a verificar
- * @returns {boolean}
+ * @returns {Promise<boolean>}
  */
-export function hasPermission(roleName: string, permission: PermissionName): boolean {
-  const userPermissions = getUserPermissions(roleName);
-  
+export async function hasPermission(roleName: string, permission: PermissionName): Promise<boolean> {
+  const userPermissions = await getUserPermissions(roleName);
+
   // Admin tiene acceso completo
   if (userPermissions.includes('*' as PermissionName)) {
     return true;
   }
-  
+
   return userPermissions.includes(permission);
 }
 
@@ -90,11 +101,10 @@ export function hasPermission(roleName: string, permission: PermissionName): boo
  * Middleware para verificar un permiso específico
  * @en Middleware to verify a specific permission
  * @param {PermissionName} requiredPermission - Permiso requerido
- * @returns {Function} Middleware de Express
+ * @returns {Function} Middleware de Express (async, compatible con Express 5)
  */
 export function verificarPermiso(requiredPermission: PermissionName) {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const user = (req as any).user;
     const userRole = user?.role || 'job_seeker';
 
@@ -105,8 +115,10 @@ export function verificarPermiso(requiredPermission: PermissionName) {
       return;
     }
 
-    // Verificar permiso
-    if (!hasPermission(userRole, requiredPermission)) {
+    // Verificar permiso contra MongoDB
+    const tienePermiso = await hasPermission(userRole, requiredPermission);
+
+    if (!tienePermiso) {
       req.flash('error', 'No tienes permiso para esta acción | You do not have permission for this action');
       res.status(403).redirect('/administracion');
       return;
@@ -120,11 +132,10 @@ export function verificarPermiso(requiredPermission: PermissionName) {
  * Middleware para verificar uno de varios permisos
  * @en Middleware to verify one of multiple permissions
  * @param {PermissionName[]} requiredPermissions - Permisos requeridos (cualquiera de ellos)
- * @returns {Function} Middleware de Express
+ * @returns {Function} Middleware de Express (async, compatible con Express 5)
  */
 export function verificarCualquierPermiso(requiredPermissions: PermissionName[]) {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const user = (req as any).user;
     const userRole = user?.role || 'job_seeker';
 
@@ -134,8 +145,8 @@ export function verificarCualquierPermiso(requiredPermissions: PermissionName[])
       return;
     }
 
-    const tieneAlgunPermiso = requiredPermissions.some(perm => 
-      hasPermission(userRole, perm)
+    const tieneAlgunPermiso = await Promise.any(
+      requiredPermissions.map(perm => hasPermission(userRole, perm))
     );
 
     if (!tieneAlgunPermiso) {
@@ -151,7 +162,7 @@ export function verificarCualquierPermiso(requiredPermissions: PermissionName[])
 /**
  * Middleware para verificar que el usuario es admin
  * @en Middleware to verify user is admin
- * @returns {Function} Middleware de Express
+ * @returns {Function} Middleware de Express (async, compatible con Express 5)
  */
 export function soloAdmin() {
   return verificarPermiso('admin:full' as PermissionName);
@@ -160,7 +171,7 @@ export function soloAdmin() {
 /**
  * Middleware para verificar que el usuario puede gestionar roles
  * @en Middleware to verify user can manage roles
- * @returns {Function} Middleware de Express
+ * @returns {Function} Middleware de Express (async, compatible con Express 5)
  */
 export function soloGestorRoles() {
   return verificarPermiso('admin:roles' as PermissionName);

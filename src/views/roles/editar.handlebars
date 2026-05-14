@@ -1,0 +1,54 @@
+{{!-- src/views/roles/editar.handlebars --}}
+{{!-- Edit Role Page --}}
+<main class="editar-vacante">
+    <h2>Editar Rol: {{rol.name}}</h2>
+
+    {{#if errores}}
+        <div class="error">
+            {{errores}}
+        </div>
+    {{/if}}
+
+    <form action="/admin/roles/editar/{{rol.name}}" method="POST">
+        <div class="campo">
+            <label for="description">Descripción | Description</label>
+            <textarea 
+                id="description" 
+                name="description" 
+                rows="3"
+                required
+            >{{rol.description}}</textarea>
+        </div>
+
+        <div class="campo">
+            <label>Permisos Actuales | Current Permissions</label>
+            <div class="permisos-grid">
+                {{#each todosPermisos}}
+                    <label class="checkbox-item">
+                        <input 
+                            type="checkbox" 
+                            name="permissions" 
+                            value="{{this.name}}"
+                            {{#if (includes rol.permissions this.name)}}checked{{/if}}
+                        >
+                        <span class="perm-name">{{this.name}}</span>
+                        <span class="perm-desc">{{this.description}}</span>
+                    </label>
+                {{/each}}
+            </div>
+        </div>
+
+        <div class="campo">
+            <label for="isActive">Activo | Active</label>
+            <select id="isActive" name="isActive">
+                <option value="true" {{#if rol.isActive}}selected{{/if}}>Sí | Yes</option>
+                <option value="false" {{#unless rol.isActive}}selected{{/unless}}>No | No</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <input type="submit" value="Guardar Cambios | Save Changes" class="btn btn-azul">
+            <a href="/admin/roles" class="btn btn-cancelar">Cancelar | Cancel</a>
+        </div>
+    </form>
+</main>

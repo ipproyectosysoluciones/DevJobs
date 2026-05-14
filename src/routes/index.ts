@@ -4,6 +4,8 @@ import * as vacantesController from "../controllers/vacantesController.js";
 import * as usuariosController from "../controllers/usuariosController.js";
 import * as authController from "../controllers/authController.js";
 import * as rolesController from "../services/roles/mongodbController.js";
+import * as adminRolesController from "../controllers/adminRolesController.js";
+import { soloAdmin } from "../middleware/permisos.js";
 
 const router = Router();
 
@@ -292,6 +294,66 @@ const routes = (): Router => {
    * @access Private
    */
   router.post("/api/permisos/verificar", authController.verificarUsuario, rolesController.checkPermission);
+
+  // ==========================================
+  // RUTAS ADMIN DE ROLES | ADMIN ROLE ROUTES
+  // ==========================================
+
+  router.get(
+    "/admin/roles",
+    authController.verificarUsuario,
+    soloAdmin(),
+    adminRolesController.mostrarRoles
+  );
+
+  router.get(
+    "/admin/roles/crear",
+    authController.verificarUsuario,
+    soloAdmin(),
+    adminRolesController.formCrearRol
+  );
+
+  router.post(
+    "/admin/roles/crear",
+    authController.verificarUsuario,
+    soloAdmin(),
+    adminRolesController.crearRol
+  );
+
+  router.get(
+    "/admin/roles/editar/:name",
+    authController.verificarUsuario,
+    soloAdmin(),
+    adminRolesController.formEditarRol
+  );
+
+  router.post(
+    "/admin/roles/editar/:name",
+    authController.verificarUsuario,
+    soloAdmin(),
+    adminRolesController.actualizarRol
+  );
+
+  router.post(
+    "/admin/roles/eliminar/:name",
+    authController.verificarUsuario,
+    soloAdmin(),
+    adminRolesController.eliminarRol
+  );
+
+  router.get(
+    "/admin/roles/asignar/:userId",
+    authController.verificarUsuario,
+    soloAdmin(),
+    adminRolesController.asignarRol
+  );
+
+  router.post(
+    "/admin/roles/asignar/:userId",
+    authController.verificarUsuario,
+    soloAdmin(),
+    adminRolesController.procesarAsignacion
+  );
 
   return router;
 };
