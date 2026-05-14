@@ -57,6 +57,14 @@
     {
       "name": "LinkedIn",
       "description": "Integración con LinkedIn | LinkedIn integration"
+    },
+    {
+      "name": "Suscripciones",
+      "description": "Gestión de suscripciones | Subscription management"
+    },
+    {
+      "name": "Auditoría",
+      "description": "Logs de auditoría | Audit logs"
     }
   ],
   "paths": {
