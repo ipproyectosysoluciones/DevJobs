@@ -370,6 +370,16 @@ const routes = (): Router => {
     adminRolesController.procesarAsignacion
   );
 
+  // ==========================================
+  // RUTAS DE SUSCRIPCIONES | SUBSCRIPTION ROUTES
+  // ==========================================
+  router.use("/api/subscription", authRateLimiter, subscriptionRoutes);
+
+  // ==========================================
+  // RUTAS DE AUDITORÍA | AUDIT ROUTES
+  // ==========================================
+  router.use("/api/audit", authRateLimiter, auditRoutes);
+
   return router;
 };
 
