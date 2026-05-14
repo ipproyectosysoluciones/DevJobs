@@ -12,6 +12,51 @@ import Role from '../../models/Role.js';
 const VALID_ROLE_NAMES: readonly RoleName[] = ['admin', 'employer', 'job_seeker', 'premium', 'moderator'];
 
 /**
+ * Valida que un string sea un RoleName válido del enum
+ * @param name - String a validar
+ * @returns True si es válido, false otherwise
+ */
+export function isValidRoleName(name: string): name is RoleName {
+  return VALID_ROLE_NAMES.includes(name as RoleName);
+}
+
+/**
+ * Sanitiza y valida un role name para queries a roles existentes
+ * @param name - Input del usuario
+ * @returns RoleName válido o null
+ */
+export function sanitizeRoleName(name: unknown): RoleName | null {
+  if (typeof name !== 'string') return null;
+  const trimmed = name.trim().toLowerCase();
+  return isValidRoleName(trimmed) ? trimmed : null;
+}
+
+/**
+ * Sanitiza un nombre de rol para CREAR nuevos roles
+ * Permite nombres personalizados (solo alfanuméricos y guiones)
+ * @param name - Input del usuario
+ * @returns Nombre sanitizado o null
+ */
+export function sanitizeNewRoleName(name: unknown): string | null {
+  if (typeof name !== 'string') return null;
+  const trimmed = name.trim().toLowerCase();
+  // Allow alphanumeric, underscores, hyphens, 2-30 chars
+  if (!/^[a-z0-9_-]{2,30}$/.test(trimmed)) return null;
+  return trimmed;
+}
+
+/**
+ * Sanitiza y valida un role name para queries
+ * @param name - Input del usuario
+ * @returns RoleName válido o null
+ */
+export function sanitizeRoleName(name: unknown): RoleName | null {
+  if (typeof name !== 'string') return null;
+  const trimmed = name.trim().toLowerCase();
+  return isValidRoleName(trimmed) ? trimmed : null;
+}
+
+/**
  * Obtiene todos los roles desde MongoDB
  * @function getRoles
  */

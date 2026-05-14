@@ -6,6 +6,7 @@ import * as authController from "../controllers/authController.js";
 import * as rolesController from "../services/roles/mongodbController.js";
 import * as adminRolesController from "../controllers/adminRolesController.js";
 import { soloAdmin } from "../middleware/permisos.js";
+import { authRateLimiter } from "../middleware/rateLimit.js";
 
 const router = Router();
 
@@ -57,6 +58,7 @@ const routes = (): Router => {
    */
   router.post(
     "/crear-cuenta",
+    authRateLimiter,
     usuariosController.validarRegistro,
     usuariosController.crearUsuario
   );
@@ -73,7 +75,7 @@ const routes = (): Router => {
    * @desc Autenticar usuario
    * @access Public
    */
-  router.post("/iniciar-sesion", authController.autenticarUsuario);
+  router.post("/iniciar-sesion", authRateLimiter, authController.autenticarUsuario);
 
   // ==========================================
   // RUTAS DE PASSWORD | PASSWORD ROUTES
@@ -91,7 +93,7 @@ const routes = (): Router => {
    * @desc Enviar token de reset por email
    * @access Public
    */
-  router.post("/reestablecer-password", authController.enviarToken);
+  router.post("/reestablecer-password", authRateLimiter, authController.enviarToken);
 
   /**
    * @route GET /reestablecer-password/:token
@@ -105,7 +107,7 @@ const routes = (): Router => {
    * @desc Guardar nuevo password
    * @access Public
    */
-  router.post("/reestablecer-password/:token", authController.guardarPassword);
+  router.post("/reestablecer-password/:token", authRateLimiter, authController.guardarPassword);
 
   // ==========================================
   // RUTAS PROTEGIDAS | PROTECTED ROUTES
@@ -272,14 +274,14 @@ const routes = (): Router => {
    * @desc Actualizar un rol
    * @access Private (Admin)
    */
-  router.put("/api/roles/:name", authController.verificarUsuario, rolesController.updateRole);
+  router.put("/api/roles/:name", authController.verificarUsuario, soloAdmin(), rolesController.updateRole);
 
   /**
    * @route DELETE /api/roles/:name
    * @desc Eliminar un rol
    * @access Private (Admin)
    */
-  router.delete("/api/roles/:name", authController.verificarUsuario, rolesController.deleteRole);
+  router.delete("/api/roles/:name", authController.verificarUsuario, soloAdmin(), rolesController.deleteRole);
 
   /**
    * @route POST /api/roles/:userId/assign

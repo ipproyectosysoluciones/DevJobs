@@ -8,6 +8,7 @@ import { Request, Response } from "express";
 import Role from "../models/Role.js";
 import Usuario from "../models/Usuarios.js";
 import type { RoleName } from "../types/usuario.js";
+import { sanitizeRoleName, sanitizeNewRoleName } from "../services/roles/mongodbController.js";
 
 /**
  * Panel de administración de roles
@@ -77,8 +78,15 @@ export const crearRol = async (req: Request, res: Response): Promise<void> => {
       return res.redirect('/admin/roles/crear');
     }
 
+    // Validate role name for new role
+    const validatedName = sanitizeNewRoleName(name);
+    if (!validatedName) {
+      req.flash('error', 'Nombre de rol inválido. Use solo letras, números, guiones (2-30 caracteres)');
+      return res.redirect('/admin/roles/crear');
+    }
+
     // Check if role already exists
-    const existingRole = await Role.findOne({ name: name as unknown as RoleName });
+    const existingRole = await Role.findOne({ name: validatedName });
     if (existingRole) {
       req.flash('error', 'El rol ya existe');
       return res.redirect('/admin/roles/crear');
@@ -273,8 +281,14 @@ export const procesarAsignacion = async (req: Request, res: Response): Promise<v
       return res.redirect(`/admin/roles/asignar/${userId}`);
     }
 
-    // Find the role
-    const role = await Role.findOne({ name: roleName as unknown as RoleName, isActive: true });
+    // Find the role - validate first
+    const validatedRoleName = sanitizeRoleName(roleName);
+    if (!validatedRoleName) {
+      req.flash('error', 'Nombre de rol inválido');
+      return res.redirect(`/admin/roles/asignar/${userId}`);
+    }
+    
+    const role = await Role.findOne({ name: validatedRoleName, isActive: true });
     if (!role) {
       req.flash('error', 'Rol no encontrado');
       return res.redirect(`/admin/roles/asignar/${userId}`);
@@ -289,10 +303,13 @@ export const procesarAsignacion = async (req: Request, res: Response): Promise<v
     // Decrement previous role count if user had a role
     const previousRoleName = user.role;
     if (previousRoleName) {
-      const previousRole = await Role.findOne({ name: previousRoleName as unknown as RoleName });
-      if (previousRole && previousRole.userCount > 0) {
-        previousRole.userCount -= 1;
-        await previousRole.save();
+      const validatedPreviousRole = sanitizeRoleName(previousRoleName);
+      if (validatedPreviousRole) {
+        const previousRole = await Role.findOne({ name: validatedPreviousRole });
+        if (previousRole && previousRole.userCount > 0) {
+          previousRole.userCount -= 1;
+          await previousRole.save();
+        }
       }
     }
 
