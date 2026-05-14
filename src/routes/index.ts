@@ -38,7 +38,7 @@ const routes = (): Router => {
    * @desc Buscar vacantes por texto
    * @access Public
    */
-  router.post("/buscador", vacantesController.buscarVacantes);
+  router.post("/buscador", authRateLimiter, vacantesController.buscarVacantes);
 
   // ==========================================
   // RUTAS DE AUTH | AUTH ROUTES
@@ -154,6 +154,7 @@ const routes = (): Router => {
   router.post(
     "/vacantes/nueva",
     authController.verificarUsuario,
+    authRateLimiter,
     vacantesController.validarVacante,
     vacantesController.agregarVacante
   );
@@ -177,6 +178,7 @@ const routes = (): Router => {
   router.post(
     "/vacantes/editar/:url",
     authController.verificarUsuario,
+    authRateLimiter,
     vacantesController.validarVacante,
     vacantesController.editarVacante
   );
