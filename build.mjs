@@ -3,12 +3,17 @@ import fs from "fs";
 import path from "path";
 
 console.log("📦 Compilando TypeScript...");
+
+// Build de producción - falla si hay errores de TypeScript
 try {
-  execSync("npx tsc --noEmitOnError false", { stdio: "inherit" });
-} catch (e) {
-  console.log("⚠️ Compilación con errores, continuando...");
+  execSync("npx tsc", { stdio: "inherit", encoding: "utf-8" });
+  console.log("✅ TypeScript compilado sin errores");
+} catch (error) {
+  console.error("❌ Error en compilación de TypeScript");
+  process.exit(1);
 }
 
+// Copiar archivos estáticos
 const dirs = ["views", "public"];
 const srcDir = "src";
 const distDir = "dist";
