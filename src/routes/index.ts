@@ -267,28 +267,28 @@ const routes = (): Router => {
    * @desc Crear un nuevo rol
    * @access Private (Admin)
    */
-  router.post("/api/roles", authController.verificarUsuario, rolesController.createRole);
+  router.post("/api/roles", authController.verificarUsuario, authRateLimiter, rolesController.createRole);
 
   /**
    * @route PUT /api/roles/:name
    * @desc Actualizar un rol
    * @access Private (Admin)
    */
-  router.put("/api/roles/:name", authController.verificarUsuario, soloAdmin(), rolesController.updateRole);
+  router.put("/api/roles/:name", authController.verificarUsuario, soloAdmin(), authRateLimiter, rolesController.updateRole);
 
   /**
    * @route DELETE /api/roles/:name
    * @desc Eliminar un rol
    * @access Private (Admin)
    */
-  router.delete("/api/roles/:name", authController.verificarUsuario, soloAdmin(), rolesController.deleteRole);
+  router.delete("/api/roles/:name", authController.verificarUsuario, soloAdmin(), authRateLimiter, rolesController.deleteRole);
 
   /**
    * @route POST /api/roles/:userId/assign
    * @desc Asignar rol a usuario
    * @access Private (Admin)
    */
-  router.post("/api/roles/:userId/assign", authController.verificarUsuario, rolesController.assignRole);
+  router.post("/api/roles/:userId/assign", authController.verificarUsuario, authRateLimiter, rolesController.assignRole);
 
   /**
    * @route POST /api/permisos/verificar
@@ -319,6 +319,7 @@ const routes = (): Router => {
     "/admin/roles/crear",
     authController.verificarUsuario,
     soloAdmin(),
+    authRateLimiter,
     adminRolesController.crearRol
   );
 
@@ -333,6 +334,7 @@ const routes = (): Router => {
     "/admin/roles/editar/:name",
     authController.verificarUsuario,
     soloAdmin(),
+    authRateLimiter,
     adminRolesController.actualizarRol
   );
 
@@ -340,6 +342,7 @@ const routes = (): Router => {
     "/admin/roles/eliminar/:name",
     authController.verificarUsuario,
     soloAdmin(),
+    authRateLimiter,
     adminRolesController.eliminarRol
   );
 
@@ -354,6 +357,7 @@ const routes = (): Router => {
     "/admin/roles/asignar/:userId",
     authController.verificarUsuario,
     soloAdmin(),
+    authRateLimiter,
     adminRolesController.procesarAsignacion
   );
 

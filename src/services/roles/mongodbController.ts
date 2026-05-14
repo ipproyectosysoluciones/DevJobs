@@ -46,17 +46,6 @@ export function sanitizeNewRoleName(name: unknown): string | null {
 }
 
 /**
- * Sanitiza y valida un role name para queries
- * @param name - Input del usuario
- * @returns RoleName válido o null
- */
-export function sanitizeRoleName(name: unknown): RoleName | null {
-  if (typeof name !== 'string') return null;
-  const trimmed = name.trim().toLowerCase();
-  return isValidRoleName(trimmed) ? trimmed : null;
-}
-
-/**
  * Obtiene todos los roles desde MongoDB
  * @function getRoles
  */

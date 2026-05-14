@@ -206,9 +206,10 @@ describe("HTML Helpers", () => {
   });
 
   describe("highlight", () => {
+    const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const highlight = (text: string, term: string) => {
       if (!term) return text;
-      const regex = new RegExp(`(${term})`, "gi");
+      const regex = new RegExp(`(${escapeRegex(term)})`, "gi");
       return text.replace(regex, "<mark>$1</mark>");
     };
 

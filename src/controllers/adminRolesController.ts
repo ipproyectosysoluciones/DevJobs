@@ -86,7 +86,7 @@ export const crearRol = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Check if role already exists
-    const existingRole = await Role.findOne({ name: validatedName });
+    const existingRole = await Role.findOne({ name: validatedName as RoleName });
     if (existingRole) {
       req.flash('error', 'El rol ya existe');
       return res.redirect('/admin/roles/crear');
@@ -94,7 +94,7 @@ export const crearRol = async (req: Request, res: Response): Promise<void> => {
 
     // Create new role
     await Role.create({
-      name,
+      name: validatedName as RoleName,
       description,
       permissions: permissions || [],
       isSystemRole: false,
