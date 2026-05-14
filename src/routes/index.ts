@@ -190,6 +190,8 @@ const routes = (): Router => {
    */
   router.delete(
     "/vacantes/eliminar/:id",
+    authController.verificarUsuario,
+    authRateLimiter,
     vacantesController.eliminarVacante
   );
 
