@@ -1,0 +1,31 @@
+{{!-- src/views/roles/asignar.handlebars --}}
+{{!-- Role Assignment Page --}}
+<main class="asignar-rol">
+    <h2>Asignar Rol a Usuario | Assign Role to User</h2>
+
+    {{#if mensajes}}
+        <div class="alerta mensaje">{{mensajes}}</div>
+    {{/if}}
+    {{#if errores}}
+        <div class="alerta error">{{errores}}</div>
+    {{/if}}
+
+    <form action="/admin/roles/asignar/{{userId}}" method="POST">
+        <div class="campo">
+            <label for="roleName">Seleccionar Rol | Select Role</label>
+            <select id="roleName" name="roleName" required>
+                <option value="">-- Seleccione un rol -- | -- Select a role --</option>
+                {{#each roles}}
+                    <option value="{{this.name}}" {{#if (eq this.name ../selectedRole)}}selected{{/if}}>
+                        {{this.name}} ({{this.description}})
+                    </option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="campo">
+            <input type="submit" value="Asignar Rol | Assign Role" class="btn btn-azul">
+            <a href="/administracion" class="btn btn-cancelar">Cancelar | Cancel</a>
+        </div>
+    </form>
+</main>

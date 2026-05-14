@@ -1,0 +1,59 @@
+{{!-- src/views/roles/crear.handlebars --}}
+{{!-- Create New Role Page --}}
+<main class="crear-vacante">
+    <h2>Crear Nuevo Rol | Create New Role</h2>
+
+    {{#if errores}}
+        <div class="error">
+            {{errores}}
+        </div>
+    {{/if}}
+
+    <form action="/admin/roles/crear" method="POST">
+        <div class="campo">
+            <label for="name">Nombre del Rol | Role Name</label>
+            <input 
+                type="text" 
+                id="name" 
+                name="name" 
+                value="{{rol.name}}"
+                placeholder="ej. admin, employer, job_seeker"
+                required
+            >
+        </div>
+
+        <div class="campo">
+            <label for="description">Descripción | Description</label>
+            <textarea 
+                id="description" 
+                name="description" 
+                rows="3"
+                placeholder="Descripción del rol..."
+                required
+            >{{rol.description}}</textarea>
+        </div>
+
+        <div class="campo">
+            <label>Permisos Disponibles | Available Permissions</label>
+            <div class="permisos-grid">
+                {{#each todosPermisos}}
+                    <label class="checkbox-item">
+                        <input 
+                            type="checkbox" 
+                            name="permissions" 
+                            value="{{this.name}}"
+                            {{#if (includes ../rol.permissions this.name)}}checked{{/if}}
+                        >
+                        <span class="perm-name">{{this.name}}</span>
+                        <span class="perm-desc">{{this.description}}</span>
+                    </label>
+                {{/each}}
+            </div>
+        </div>
+
+        <div class="campo">
+            <input type="submit" value="Crear Rol | Create Role" class="btn btn-azul">
+            <a href="/admin/roles" class="btn btn-cancelar">Cancelar | Cancel</a>
+        </div>
+    </form>
+</main>

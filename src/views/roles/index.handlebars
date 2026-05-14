@@ -1,0 +1,52 @@
+{{!-- src/views/roles/index.handlebars --}}
+{{!-- Role Management Index Page --}}
+<main class="panel-administracion">
+    <h2>Gestión de Roles | Role Management</h2>
+
+    {{#if mensajes}}
+        <div class="alerta mensaje">{{mensajes}}</div>
+    {{/if}}
+    {{#if errores}}
+        <div class="alerta error">{{errores}}</div>
+    {{/if}}
+
+    <div class="botones">
+        <a href="/admin/roles/crear" class="btn btn-azul">Crear Nuevo Rol | Create New Role</a>
+        <a href="/administracion" class="btn btn-cancelar">Volver | Back</a>
+    </div>
+
+    {{#if roles.length}}
+        <div class="tabla-roles">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre | Name</th>
+                        <th>Descripción | Description</th>
+                        <th>Permisos | Permissions</th>
+                        <th>Usuarios | Users</th>
+                        <th>Estado | Status</th>
+                        <th>Acciones | Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each roles}}
+                        <tr>
+                            <td><strong>{{name}}</strong></td>
+                            <td>{{description}}</td>
+                            <td>{{permissions.length}}</td>
+                            <td>{{userCount}}</td>
+                            <td>{{#if isActive}}✅ Activo | Active{{else}}❌ Inactivo | Inactive{{/if}}</td>
+                            <td>
+                                <a href="/admin/roles/editar/{{name}}" class="btn btn-azul">Editar | Edit</a>
+                                <a href="/admin/roles/eliminar/{{name}}" class="btn btn-rojo"
+                                   onclick="return confirm('¿Estás seguro de eliminar este rol? | Are you sure?')">Eliminar | Delete</a>
+                            </td>
+                        </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    {{else}}
+        <p>No hay roles disponibles | No roles available</p>
+    {{/if}}
+</main>
