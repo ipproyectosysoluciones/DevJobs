@@ -7,6 +7,11 @@ import * as rolesController from "../services/roles/mongodbController.js";
 import * as adminRolesController from "../controllers/adminRolesController.js";
 import { soloAdmin } from "../middleware/permisos.js";
 import { authRateLimiter } from "../middleware/rateLimit.js";
+import subscriptionRoutes from "../services/subscription/routes.js";
+import auditRoutes from "../services/audit/routes.js";
+
+void subscriptionRoutes;
+void auditRoutes;
 
 const router = Router();
 
