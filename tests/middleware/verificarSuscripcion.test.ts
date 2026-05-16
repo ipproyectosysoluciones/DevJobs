@@ -5,9 +5,14 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock de Subscription
+// Mock Query object (lo que devuelve findOne - un Query de Mongoose)
+const mockQuery = {
+  sort: vi.fn(),
+};
+
+// Mock del modelo Subscription
 const mockSubscription = {
-  findOne: vi.fn(),
+  findOne: vi.fn().mockReturnValue(mockQuery),
 };
 
 vi.mock('../../src/models/Subscription.js', () => ({
@@ -17,10 +22,11 @@ vi.mock('../../src/models/Subscription.js', () => ({
 describe('verificarSuscripcion Middleware', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockQuery.sort.mockReturnValue(mockQuery);
   });
 
   it('should allow access for user with sufficient plan', async () => {
-    mockSubscription.findOne.mockResolvedValue({
+    mockQuery.sort.mockResolvedValue({
       plan: 'premium',
       status: 'active',
     });
@@ -41,7 +47,7 @@ describe('verificarSuscripcion Middleware', () => {
   });
 
   it('should deny access for user with insufficient plan', async () => {
-    mockSubscription.findOne.mockResolvedValue({
+    mockQuery.sort.mockResolvedValue({
       plan: 'free',
       status: 'active',
     });
@@ -67,7 +73,7 @@ describe('verificarSuscripcion Middleware', () => {
   });
 
   it('should assume free plan for users without subscription', async () => {
-    mockSubscription.findOne.mockResolvedValue(null);
+    mockQuery.sort.mockResolvedValue(null);
 
     const { verificarSuscripcion } = await import('../../src/middleware/verificarSuscripcion.js');
     
@@ -102,7 +108,7 @@ describe('verificarSuscripcion Middleware', () => {
 
   describe('soloPremium', () => {
     it('should only allow premium users', async () => {
-      mockSubscription.findOne.mockResolvedValue({
+      mockQuery.sort.mockResolvedValue({
         plan: 'premium',
         status: 'active',
       });

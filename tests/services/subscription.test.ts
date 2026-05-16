@@ -5,13 +5,21 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock de Subscription
+// Mock Query object (lo que devuelve findOne/find - un Query de Mongoose)
+const mockQuery = {
+  sort: vi.fn(),
+  skip: vi.fn(),
+  limit: vi.fn(),
+  populate: vi.fn(),
+};
+
+// Mock del modelo Subscription
 const mockSubscription = {
-  findOne: vi.fn(),
+  findOne: vi.fn().mockReturnValue(mockQuery),
   findByIdAndUpdate: vi.fn(),
   findById: vi.fn(),
   create: vi.fn(),
-  find: vi.fn(),
+  find: vi.fn().mockReturnValue(mockQuery),
   countDocuments: vi.fn(),
 };
 
@@ -22,6 +30,11 @@ vi.mock('../../src/models/Subscription.js', () => ({
 describe('Subscription Service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset mockQuery chain defaults
+    mockQuery.sort.mockReturnValue(mockQuery);
+    mockQuery.skip.mockReturnValue(mockQuery);
+    mockQuery.limit.mockReturnValue(mockQuery);
+    mockQuery.populate.mockReturnValue(mockQuery);
   });
 
   describe('getSubscription', () => {
@@ -31,7 +44,7 @@ describe('Subscription Service', () => {
         plan: 'premium',
         status: 'active',
       };
-      mockSubscription.findOne.mockResolvedValue(mockSub);
+      mockQuery.sort.mockResolvedValue(mockSub);
 
       // Importar después del mock
       const { getSubscription } = await import('../../src/services/subscription/controller.js');
@@ -49,10 +62,12 @@ describe('Subscription Service', () => {
         userId: 'user123',
         status: 'active',
       });
+      expect(mockQuery.sort).toHaveBeenCalledWith({ createdAt: -1 });
+      expect(res.json).toHaveBeenCalledWith(mockSub);
     });
 
     it('should return 404 when no subscription found', async () => {
-      mockSubscription.findOne.mockResolvedValue(null);
+      mockQuery.sort.mockResolvedValue(null);
 
       const { getSubscription } = await import('../../src/services/subscription/controller.js');
       

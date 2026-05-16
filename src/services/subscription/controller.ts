@@ -5,7 +5,7 @@
  */
 
 import type { Request, Response } from 'express';
-import Subscription from '../../models/Subscription.js';
+import Subscription, { type ISubscriptionDocument } from '../../models/Subscription.js';
 
 /**
  * Obtener suscripción por userId
@@ -16,10 +16,12 @@ export async function getSubscription(req: Request, res: Response): Promise<void
   try {
     const { userId } = req.params;
     
-    const subscription = await Subscription.findOne({ 
+    const subscriptionQuery = Subscription.findOne({ 
       userId, 
       status: 'active' 
-    }).sort({ createdAt: -1 });
+    });
+    
+    const subscription = await subscriptionQuery.sort({ createdAt: -1 });
 
     if (!subscription) {
       res.status(404).json({ 
@@ -152,7 +154,9 @@ export async function getAllSubscriptions(req: Request, res: Response): Promise<
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
 
-    const subscriptions = await Subscription.find()
+    const subscriptionQuery = Subscription.find();
+    
+    const subscriptions = await subscriptionQuery
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)

@@ -5,7 +5,7 @@
  */
 
 import type { Request, Response, NextFunction } from 'express';
-import Subscription from '../models/Subscription.js';
+import Subscription, { type ISubscriptionDocument } from '../models/Subscription.js';
 
 /**
  * Plan requerido | Required plan
@@ -40,10 +40,12 @@ export function verificarSuscripcion(requiredPlan: RequiredPlan) {
         return;
       }
 
-      const subscription = await Subscription.findOne({
+      const subscriptionQuery = Subscription.findOne({
         userId,
         status: 'active'
-      }).sort({ createdAt: -1 });
+      });
+      
+      const subscription = await subscriptionQuery.sort({ createdAt: -1 });
 
       // Si no tiene suscripción activa, asume plan free
       const userPlan = subscription?.plan || 'free';
