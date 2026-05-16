@@ -84,10 +84,10 @@ describe("Usuarios", () => {
 
   describe("Password Reset", () => {
     it("should generate reset token", () => {
-      const generateToken = () => Math.random().toString(36).substring(2);
+      const generateToken = () => Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
       
       const token = generateToken();
-      expect(token.length).toBeGreaterThan(10);
+      expect(token.length).toBeGreaterThanOrEqual(12);
     });
 
     it("should validate reset token expiry", () => {
