@@ -8,3 +8,5 @@ export { default as Subscription, type ISubscriptionDocument } from "./Subscript
 export { default as AuditLog, type IAuditLogDocument } from "./AuditLog.js";
 export { default as AnalyticsEvent, type IAnalyticsEventDocument } from "./AnalyticsEvent.js";
 export { default as Job, type IJobDocument } from "./Job.js";
+export { default as Chat, type IChatDocument } from "./Chat.js";
+export { default as Message, type IMessageDocument } from "./Message.js";
