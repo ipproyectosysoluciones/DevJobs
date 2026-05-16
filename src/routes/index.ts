@@ -11,6 +11,7 @@ import subscriptionRoutes from "../services/subscription/routes.js";
 import auditRoutes from "../services/audit/routes.js";
 import { createAnalyticsRouter } from "../services/analytics/routes.js";
 import { createAuthRouter } from "../services/auth/routes.js";
+import { createJobsRouter } from "../services/jobs/routes.js";
 import * as suscripcionController from "../controllers/suscripcionController.js";
 import * as analiticasController from "../controllers/analiticasController.js";
 import * as auditoriaController from "../controllers/auditoriaController.js";
@@ -403,6 +404,11 @@ const routes = (): Router => {
   // AUTH JWT API | AUTH JWT API ROUTES
   // ==========================================
   router.use("/api/auth", apiRateLimiter, createAuthRouter());
+
+  // ==========================================
+  // JOBS API | JOBS API ROUTES
+  // ==========================================
+  router.use("/api/jobs", apiRateLimiter, createJobsRouter());
 
   // ==========================================
   // VISTAS DE SUSCRIPCIÓN | SUBSCRIPTION VIEWS

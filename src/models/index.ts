@@ -7,3 +7,4 @@ export { default as Usuario, type IUsuarioDocument } from "./Usuarios.js";
 export { default as Subscription, type ISubscriptionDocument } from "./Subscription.js";
 export { default as AuditLog, type IAuditLogDocument } from "./AuditLog.js";
 export { default as AnalyticsEvent, type IAnalyticsEventDocument } from "./AnalyticsEvent.js";
+export { default as Job, type IJobDocument } from "./Job.js";
