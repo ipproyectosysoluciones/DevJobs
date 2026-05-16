@@ -70,7 +70,7 @@ export function createLinkedInRouter(): Router {
    *       404:
    *         description: Perfil no encontrado
    */
-  router.get('/profile', authenticate, linkedinController.getProfile);
+  router.get('/profile', authenticate, linkedinController.getLinkedProfile);
 
   /**
    * @swagger

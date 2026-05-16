@@ -10,3 +10,5 @@ export { default as AnalyticsEvent, type IAnalyticsEventDocument } from "./Analy
 export { default as Job, type IJobDocument } from "./Job.js";
 export { default as Chat, type IChatDocument } from "./Chat.js";
 export { default as Message, type IMessageDocument } from "./Message.js";
+export { default as Donation, type IDonationDocument } from "./Donation.js";
+export { default as LinkedInProfile, type ILinkedInProfileDocument } from "./LinkedInProfile.js";

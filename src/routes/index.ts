@@ -13,6 +13,8 @@ import { createAnalyticsRouter } from "../services/analytics/routes.js";
 import { createAuthRouter } from "../services/auth/routes.js";
 import { createJobsRouter } from "../services/jobs/routes.js";
 import { createChatRouter } from "../services/chat/routes.js";
+import { createDonationsRouter } from "../services/donations/routes.js";
+import { createLinkedInRouter } from "../services/linkedin/routes.js";
 import * as suscripcionController from "../controllers/suscripcionController.js";
 import * as analiticasController from "../controllers/analiticasController.js";
 import * as auditoriaController from "../controllers/auditoriaController.js";
@@ -415,6 +417,16 @@ const routes = (): Router => {
   // CHAT API | CHAT API ROUTES
   // ==========================================
   router.use("/api/chat", apiRateLimiter, createChatRouter());
+
+  // ==========================================
+  // DONATIONS API | DONATIONS API ROUTES
+  // ==========================================
+  router.use("/api/donations", apiRateLimiter, createDonationsRouter());
+
+  // ==========================================
+  // LINKEDIN API | LINKEDIN API ROUTES
+  // ==========================================
+  router.use("/api/linkedin", apiRateLimiter, createLinkedInRouter());
 
   // ==========================================
   // VISTAS DE SUSCRIPCIÓN | SUBSCRIPTION VIEWS
