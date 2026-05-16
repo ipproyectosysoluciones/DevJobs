@@ -90,6 +90,9 @@ export const mostrarVacante = async (
     return next();
   }
 
+  // Incrementar contador de visitas (fire & forget)
+  Vacante.findByIdAndUpdate(vacante._id, { $inc: { visitas: 1 } }).exec();
+
   res.render('vacante', {
     vacante,
     nombrePagina: vacante.titulo,

@@ -25,15 +25,15 @@ export async function mostrarAnaliticas(req: Request, res: Response): Promise<vo
     const totalVacantes = await Vacante.countDocuments();
     const totalUsuarios = await Usuario.countDocuments();
     
-    // Obtener vacantes recientes para el top
-    const vacantesQuery = Vacante.find().sort({ createdAt: -1 }).limit(10);
+    // Obtener vacantes más vistas para el top
+    const vacantesQuery = Vacante.find().sort({ visitas: -1 }).limit(10);
     const vacantesRecientes = await vacantesQuery;
 
     const topVacantes = vacantesRecientes.map(v => ({
       titulo: v.titulo,
       empresa: v.empresa,
       url: v.url,
-      visitas: 'N/A',
+      visitas: v.visitas,
       postulaciones: v.candidatos?.length || 0,
     }));
 
