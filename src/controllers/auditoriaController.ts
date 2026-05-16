@@ -26,12 +26,22 @@ export async function mostrarAuditoria(req: Request, res: Response): Promise<voi
     const accionFilter = req.query.accion as string;
     const usuarioFilter = req.query.usuario as string;
 
+    // Validar accion contra whitelist
+    const VALID_ACTIONS = [
+      'role_changed', 'permission_changed', 'user_created', 'user_deleted',
+      'subscription_changed', 'login_failed', 'login_success',
+      'password_changed', 'profile_updated',
+    ] as const;
+
     // Construir filtro
     const filter: Record<string, unknown> = {};
-    if (accionFilter) {
+    if (accionFilter && VALID_ACTIONS.includes(accionFilter as typeof VALID_ACTIONS[number])) {
       filter.action = accionFilter;
     }
-    if (usuarioFilter) {
+
+    // Validar usuario como ObjectId de MongoDB
+    const OBJECTID_REGEX = /^[a-f0-9]{24}$/i;
+    if (usuarioFilter && OBJECTID_REGEX.test(usuarioFilter)) {
       filter.$or = [
         { targetUserId: usuarioFilter },
         { performedBy: usuarioFilter },

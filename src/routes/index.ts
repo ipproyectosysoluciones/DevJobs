@@ -6,7 +6,7 @@ import * as authController from "../controllers/authController.js";
 import * as rolesController from "../services/roles/mongodbController.js";
 import * as adminRolesController from "../controllers/adminRolesController.js";
 import { soloAdmin } from "../middleware/permisos.js";
-import { authRateLimiter } from "../middleware/rateLimit.js";
+import { authRateLimiter, apiRateLimiter, generalRateLimiter } from "../middleware/rateLimit.js";
 import subscriptionRoutes from "../services/subscription/routes.js";
 import auditRoutes from "../services/audit/routes.js";
 import * as suscripcionController from "../controllers/suscripcionController.js";
@@ -32,14 +32,14 @@ const routes = (): Router => {
    * @desc Página principal - Mostrar todos los trabajos
    * @access Public
    */
-  router.get("/", homeController.mostrarTrabajos);
+  router.get("/", generalRateLimiter, homeController.mostrarTrabajos);
 
   /**
    * @route GET /vacantes/:url
    * @desc Mostrar detalles de una vacante
    * @access Public
    */
-  router.get("/vacantes/:url", vacantesController.mostrarVacante);
+  router.get("/vacantes/:url", generalRateLimiter, vacantesController.mostrarVacante);
 
   /**
    * @route POST /buscador
@@ -57,7 +57,7 @@ const routes = (): Router => {
    * @desc Mostrar formulario de registro
    * @access Public
    */
-  router.get("/crear-cuenta", usuariosController.formCrearCuenta);
+  router.get("/crear-cuenta", generalRateLimiter, usuariosController.formCrearCuenta);
 
   /**
    * @route POST /crear-cuenta
@@ -76,7 +76,7 @@ const routes = (): Router => {
    * @desc Mostrar formulario de inicio de sesión
    * @access Public
    */
-  router.get("/iniciar-sesion", usuariosController.formIniciarSesion);
+  router.get("/iniciar-sesion", generalRateLimiter, usuariosController.formIniciarSesion);
 
   /**
    * @route POST /iniciar-sesion
@@ -94,7 +94,7 @@ const routes = (): Router => {
    * @desc Mostrar formulario para solicitar reset
    * @access Public
    */
-  router.get("/reestablecer-password", authController.formReestablecerPassword);
+  router.get("/reestablecer-password", generalRateLimiter, authController.formReestablecerPassword);
 
   /**
    * @route POST /reestablecer-password
@@ -108,7 +108,7 @@ const routes = (): Router => {
    * @desc Mostrar formulario para nuevo password
    * @access Public
    */
-  router.get("/reestablecer-password/:token", authController.reestablecerPassword);
+  router.get("/reestablecer-password/:token", generalRateLimiter, authController.reestablecerPassword);
 
   /**
    * @route POST /reestablecer-password/:token
@@ -129,6 +129,7 @@ const routes = (): Router => {
   router.get(
     "/cerrar-sesion",
     authController.verificarUsuario,
+    generalRateLimiter,
     authController.cerrarSesion
   );
 
@@ -140,6 +141,7 @@ const routes = (): Router => {
   router.get(
     "/administracion",
     authController.verificarUsuario,
+    generalRateLimiter,
     authController.mostrarPanel
   );
 
@@ -151,6 +153,7 @@ const routes = (): Router => {
   router.get(
     "/vacantes/nueva",
     authController.verificarUsuario,
+    generalRateLimiter,
     vacantesController.formularioNuevaVacante
   );
 
@@ -175,6 +178,7 @@ const routes = (): Router => {
   router.get(
     "/vacantes/editar/:url",
     authController.verificarUsuario,
+    generalRateLimiter,
     vacantesController.formEditarVacante
   );
 
@@ -211,6 +215,7 @@ const routes = (): Router => {
   router.get(
     "/editar-perfil",
     authController.verificarUsuario,
+    generalRateLimiter,
     usuariosController.formEditarPerfil
   );
 
@@ -222,6 +227,7 @@ const routes = (): Router => {
   router.post(
     "/editar-perfil",
     authController.verificarUsuario,
+    generalRateLimiter,
     usuariosController.subirImagen,
     usuariosController.validarPerfil,
     usuariosController.editarPerfil
@@ -234,6 +240,7 @@ const routes = (): Router => {
    */
   router.post(
     "/vacantes/:url",
+    generalRateLimiter,
     vacantesController.subirCV,
     vacantesController.contactar
   );
@@ -246,6 +253,7 @@ const routes = (): Router => {
   router.get(
     "/candidatos/:id",
     authController.verificarUsuario,
+    generalRateLimiter,
     vacantesController.mostrarCandidatos
   );
 
@@ -258,21 +266,21 @@ const routes = (): Router => {
    * @desc Obtener todos los roles
    * @access Public
    */
-  router.get("/api/roles", rolesController.getRoles);
+  router.get("/api/roles", apiRateLimiter, rolesController.getRoles);
 
   /**
    * @route GET /api/roles/:name
    * @desc Obtener un rol por nombre
    * @access Public
    */
-  router.get("/api/roles/:name", rolesController.getRoleByName);
+  router.get("/api/roles/:name", apiRateLimiter, rolesController.getRoleByName);
 
   /**
    * @route GET /api/permisos
    * @desc Obtener todos los permisos
    * @access Public
    */
-  router.get("/api/permisos", rolesController.getPermissions);
+  router.get("/api/permisos", apiRateLimiter, rolesController.getPermissions);
 
   /**
    * @route POST /api/roles
@@ -307,7 +315,7 @@ const routes = (): Router => {
    * @desc Verificar permisos del usuario actual
    * @access Private
    */
-  router.post("/api/permisos/verificar", authController.verificarUsuario, rolesController.checkPermission);
+  router.post("/api/permisos/verificar", authController.verificarUsuario, apiRateLimiter, rolesController.checkPermission);
 
   // ==========================================
   // RUTAS ADMIN DE ROLES | ADMIN ROLE ROUTES
@@ -317,6 +325,7 @@ const routes = (): Router => {
     "/admin/roles",
     authController.verificarUsuario,
     soloAdmin(),
+    generalRateLimiter,
     adminRolesController.mostrarRoles
   );
 
@@ -324,6 +333,7 @@ const routes = (): Router => {
     "/admin/roles/crear",
     authController.verificarUsuario,
     soloAdmin(),
+    generalRateLimiter,
     adminRolesController.formCrearRol
   );
 
@@ -339,6 +349,7 @@ const routes = (): Router => {
     "/admin/roles/editar/:name",
     authController.verificarUsuario,
     soloAdmin(),
+    generalRateLimiter,
     adminRolesController.formEditarRol
   );
 
@@ -362,6 +373,7 @@ const routes = (): Router => {
     "/admin/roles/asignar/:userId",
     authController.verificarUsuario,
     soloAdmin(),
+    generalRateLimiter,
     adminRolesController.asignarRol
   );
 
@@ -389,11 +401,13 @@ const routes = (): Router => {
   router.get(
     "/suscripcion",
     authController.verificarUsuario,
+    generalRateLimiter,
     suscripcionController.mostrarSuscripcion
   );
   router.get(
     "/suscripcion/contratar/:plan",
     authController.verificarUsuario,
+    generalRateLimiter,
     suscripcionController.contratarPlan
   );
 
@@ -403,6 +417,7 @@ const routes = (): Router => {
   router.get(
     "/analiticas",
     authController.verificarUsuario,
+    generalRateLimiter,
     analiticasController.mostrarAnaliticas
   );
 
@@ -413,6 +428,7 @@ const routes = (): Router => {
     "/admin/auditoria",
     authController.verificarUsuario,
     soloAdmin(),
+    generalRateLimiter,
     auditoriaController.mostrarAuditoria
   );
 

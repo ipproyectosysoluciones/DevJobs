@@ -60,6 +60,11 @@ app.use(session({
   secret: process.env.SECRETO ?? "devjobs-secret",
   resave: false,
   saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'lax',
+  },
 } as any));
 
 app.use(passport.initialize());

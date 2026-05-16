@@ -71,7 +71,15 @@ export const formReestablecerPassword = (_req: Request, res: Response): void => 
 export const enviarToken = async (req: Request, res: Response): Promise<void> => {
   const Usuario = (await import("../models/Usuarios.js")).default;
   try {
-    const usuario = await Usuario.findOne({ email: req.body.email });
+    // Sanitizar email: debe ser string, trim, evitar query injection ($ operators)
+    const emailRaw = req.body.email;
+    const email = typeof emailRaw === 'string' ? emailRaw.trim().toLowerCase() : '';
+    if (!email || email.startsWith('$')) {
+      req.flash('error', 'Email inválido | Invalid email');
+      return res.redirect('/iniciar-sesion');
+    }
+
+    const usuario = await Usuario.findOne({ email });
 
     if (!usuario) {
       req.flash("error", "No existe esa cuenta");

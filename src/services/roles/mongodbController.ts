@@ -93,7 +93,7 @@ export async function getRoleByName(req: Request, res: Response): Promise<void> 
  */
 export async function createRole(req: Request, res: Response): Promise<void> {
   try {
-    const { name, description, permissions } = req.body;
+    const { name: rawName, description, permissions } = req.body;
     const user = (req as any).user;
 
     // Solo admins pueden crear roles
@@ -101,6 +101,16 @@ export async function createRole(req: Request, res: Response): Promise<void> {
       res.status(403).json({
         error: 'No autorizado',
         message: 'Only admins can create roles',
+      });
+      return;
+    }
+
+    // Sanitizar nombre de rol antes de usarlo en queries
+    const name = sanitizeNewRoleName(rawName);
+    if (!name) {
+      res.status(400).json({
+        error: 'Nombre de rol inválido: debe tener 2-30 caracteres alfanuméricos',
+        message: 'Invalid role name: must be 2-30 alphanumeric characters',
       });
       return;
     }
@@ -115,7 +125,7 @@ export async function createRole(req: Request, res: Response): Promise<void> {
     }
 
     const newRole = await Role.create({
-      name,
+      name: name as RoleName,
       description,
       permissions: permissions || [],
       isSystemRole: false,

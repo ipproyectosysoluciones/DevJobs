@@ -36,6 +36,15 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
 }
 
 /**
+ * Sanitiza un valor asegurando que sea un string plano (previene query injection)
+ */
+function sanitizeString(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  // Eliminar caracteres que podrían interpretarse como operadores MongoDB ($)
+  return value.replace(/^\$/, '').trim();
+}
+
+/**
  * Procesar actualización de suscripción Stripe
  */
 async function handleStripeSubscriptionUpdate(subscription: {
@@ -44,7 +53,7 @@ async function handleStripeSubscriptionUpdate(subscription: {
   status: string;
   current_period_end: number;
 }): Promise<void> {
-  const stripeCustomerId = subscription.customer;
+  const stripeCustomerId = sanitizeString(subscription.customer);
   const endDate = new Date(subscription.current_period_end * 1000);
   
   // Map Stripe status to our status
@@ -55,7 +64,7 @@ async function handleStripeSubscriptionUpdate(subscription: {
   await Subscription.findOneAndUpdate(
     { stripeCustomerId },
     {
-      stripeSubscriptionId: subscription.id,
+      stripeSubscriptionId: sanitizeString(subscription.id),
       status,
       endDate,
       updatedAt: new Date(),
@@ -71,7 +80,7 @@ async function handleStripeSubscriptionCancelled(subscription: {
   customer: string;
 }): Promise<void> {
   await Subscription.findOneAndUpdate(
-    { stripeSubscriptionId: subscription.id },
+    { stripeSubscriptionId: sanitizeString(subscription.id) },
     {
       status: 'cancelled',
       cancelledAt: new Date(),
@@ -121,7 +130,7 @@ async function handlePayPalSubscriptionUpdate(subscription: {
   else if (subscription.status === 'CANCELLED' || subscription.status === 'EXPIRED') status = 'cancelled';
 
   await Subscription.findOneAndUpdate(
-    { paypalSubscriptionId: subscription.id },
+    { paypalSubscriptionId: sanitizeString(subscription.id) },
     {
       status,
       updatedAt: new Date(),
@@ -136,7 +145,7 @@ async function handlePayPalSubscriptionCancelled(subscription: {
   id: string;
 }): Promise<void> {
   await Subscription.findOneAndUpdate(
-    { paypalSubscriptionId: subscription.id },
+    { paypalSubscriptionId: sanitizeString(subscription.id) },
     {
       status: 'cancelled',
       cancelledAt: new Date(),

@@ -4,6 +4,7 @@
  * @module services/analytics/controller
  */
 
+import crypto from 'crypto';
 import type { Request, Response } from 'express';
 import type { 
   AnalyticsEvent, 
