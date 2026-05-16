@@ -1,106 +1,113 @@
 /**
  * @fileoverview Controlador del servicio de chat
- * @fileoverview Chat service controller
  * @module services/chat/controller
  */
 
 import type { Request, Response } from 'express';
+import mongoose from 'mongoose';
+import Chat from '../../models/Chat.js';
+import Message from '../../models/Message.js';
 import type { 
-  Chat, 
-  Message, 
   CreateChatRequest, 
   SendMessageRequest,
   ChatResponse,
   Participant 
 } from './types.js';
-
-// Base de datos en memoria (en producción, usar MongoDB)
-const chats: Map<string, Chat> = new Map();
-const messages: Map<string, Message[]> = new Map();
-
-// Inicializar con datos de ejemplo
-seedChats();
+import type { AuthenticatedRequest } from '../auth/middleware.js';
 
 /**
  * Obtiene todos los chats del usuario
- * @function getChats
- * @description Retorna lista de chats del usuario actual
- * @param {Request} req - Request de Express
- * @param {Response} res - Response de Express
- * @returns {void}
  */
-export function getChats(req: Request, res: Response): void {
-  const user = (req as any).user;
-  
-  if (!user) {
-    res.status(401).json({
-      error: 'No autenticado',
-      message: 'Not authenticated',
+export async function getChats(req: Request, res: Response): Promise<void> {
+  try {
+    const user = (req as unknown as AuthenticatedRequest).user;
+
+    if (!user) {
+      res.status(401).json({
+        error: 'No autenticado',
+        message: 'Not authenticated',
+      });
+      return;
+    }
+
+    const userChats = await Chat.find({
+      'participants.userId': new mongoose.Types.ObjectId(user.userId),
+      isActive: true,
+    })
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    res.json(userChats);
+  } catch (error) {
+    console.error('Error en getChats:', error);
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      message: 'Internal server error',
     });
-    return;
   }
-
-  const userChats = Array.from(chats.values()).filter(chat =>
-    chat.participants.some(p => p.userId === user.userId) && chat.isActive
-  );
-
-  res.json(userChats);
 }
 
 /**
  * Obtiene un chat específico con sus mensajes
- * @function getChatById
- * @description Retorna un chat específico con sus mensajes
- * @param {Request} req - Request de Express
- * @param {Response} res - Response de Express
- * @returns {void}
  */
-export function getChatById(req: Request, res: Response): void {
-  const id = req.params.id as string;
-  const user = (req as any).user;
+export async function getChatById(req: Request, res: Response): Promise<void> {
+  try {
+    const id = req.params.id;
+    const user = (req as unknown as AuthenticatedRequest).user;
 
-  const chat = chats.get(id);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ error: 'ID inválido' });
+      return;
+    }
 
-  if (!chat) {
-    res.status(404).json({
-      error: 'Chat no encontrado',
-      message: 'Chat not found',
+    const chat = await Chat.findById(id).lean();
+
+    if (!chat) {
+      res.status(404).json({
+        error: 'Chat no encontrado',
+        message: 'Chat not found',
+      });
+      return;
+    }
+
+    const isParticipant = (chat.participants as Participant[]).some(
+      p => p.userId.toString() === user?.userId
+    );
+    if (!isParticipant) {
+      res.status(403).json({
+        error: 'No autorizado',
+        message: 'Not authorized to view this chat',
+      });
+      return;
+    }
+
+    const chatMessages = await Message.find({ chatId: id })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+
+    const response: ChatResponse = {
+      chat: chat as never,
+      messages: chatMessages as never,
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error en getChatById:', error);
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      message: 'Internal server error',
     });
-    return;
   }
-
-  // Verificar que el usuario es participante
-  const isParticipant = chat.participants.some(p => p.userId === user?.userId);
-  if (!isParticipant) {
-    res.status(403).json({
-      error: 'No autorizado',
-      message: 'Not authorized to view this chat',
-    });
-    return;
-  }
-
-  const chatMessages = messages.get(id) || [];
-
-  const response: ChatResponse = {
-    chat,
-    messages: chatMessages,
-  };
-
-  res.json(response);
 }
 
 /**
  * Crea un nuevo chat
- * @function createChat
- * @description Crea una nueva conversación/chat
- * @param {Request} req - Request de Express
- * @param {Response} res - Response de Express
- * @returns {Promise<void>}
  */
 export async function createChat(req: Request, res: Response): Promise<void> {
   try {
     const chatData = req.body as CreateChatRequest;
-    const user = (req as any).user;
+    const user = (req as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       res.status(401).json({
@@ -121,7 +128,7 @@ export async function createChat(req: Request, res: Response): Promise<void> {
     const participants: Participant[] = [
       {
         userId: user.userId,
-        name: user.name || user.email,
+        name: user.nombre || user.email,
         role: 'candidate',
         joinedAt: new Date(),
       },
@@ -133,35 +140,27 @@ export async function createChat(req: Request, res: Response): Promise<void> {
       })),
     ];
 
-    const chat: Chat = {
-      _id: crypto.randomUUID(),
+    const chat = new Chat({
       title: chatData.title || `Chat ${new Date().toLocaleDateString()}`,
       participants,
       isGroup: chatData.isGroup || false,
       jobId: chatData.jobId,
       isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    });
 
-    chats.set(chat._id, chat);
-    messages.set(chat._id, []);
+    const savedChat = await chat.save();
 
     // Mensaje de sistema inicial
-    const systemMessage: Message = {
-      _id: crypto.randomUUID(),
-      chatId: chat._id,
+    await Message.create({
+      chatId: savedChat._id,
       senderId: 'system',
       senderName: 'System',
       content: 'Chat iniciado',
       type: 'system',
       isFromBot: false,
-      createdAt: new Date(),
-    };
-    
-    messages.get(chat._id)?.push(systemMessage);
+    });
 
-    res.status(201).json(chat);
+    res.status(201).json(savedChat.toObject());
   } catch (error) {
     console.error('Error en createChat:', error);
     res.status(500).json({
@@ -173,148 +172,162 @@ export async function createChat(req: Request, res: Response): Promise<void> {
 
 /**
  * Envía un mensaje al chat
- * @function sendMessage
- * @description Envía un mensaje a un chat existente
- * @param {Request} req - Request de Express
- * @param {Response} res - Response de Express
- * @returns {void}
  */
-export function sendMessage(req: Request, res: Response): void {
-  const chatId = req.params.chatId as string;
-  const messageData = req.body as SendMessageRequest;
-  const user = (req as any).user;
+export async function sendMessage(req: Request, res: Response): Promise<void> {
+  try {
+    const chatId = req.params.chatId;
+    const messageData = req.body as SendMessageRequest;
+    const user = (req as unknown as AuthenticatedRequest).user;
 
-  const chat = chats.get(chatId);
+    if (!mongoose.Types.ObjectId.isValid(chatId)) {
+      res.status(400).json({ error: 'ID de chat inválido' });
+      return;
+    }
 
-  if (!chat) {
-    res.status(404).json({
-      error: 'Chat no encontrado',
-      message: 'Chat not found',
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      res.status(404).json({
+        error: 'Chat no encontrado',
+        message: 'Chat not found',
+      });
+      return;
+    }
+
+    const participant = (chat.participants as Participant[]).find(
+      p => p.userId.toString() === user?.userId
+    );
+    if (!participant) {
+      res.status(403).json({
+        error: 'No autorizado',
+        message: 'Not authorized to send messages in this chat',
+      });
+      return;
+    }
+
+    const message = await Message.create({
+      chatId: chat._id,
+      senderId: user?.userId || 'system',
+      senderName: participant.name,
+      content: messageData.content,
+      type: messageData.type || 'text',
+      isFromBot: false,
     });
-    return;
-  }
 
-  // Verificar que el usuario es participante
-  const participant = chat.participants.find(p => p.userId === user?.userId);
-  if (!participant) {
-    res.status(403).json({
-      error: 'No autorizado',
-      message: 'Not authorized to send messages in this chat',
+    // Update chat's last message
+    chat.lastMessage = {
+      content: messageData.content,
+      senderName: participant.name,
+      createdAt: new Date(),
+    };
+    chat.updatedAt = new Date();
+    await chat.save();
+
+    res.status(201).json(message.toObject());
+  } catch (error) {
+    console.error('Error en sendMessage:', error);
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      message: 'Internal server error',
     });
-    return;
   }
-
-  const message: Message = {
-    _id: crypto.randomUUID(),
-    chatId,
-    senderId: user.userId,
-    senderName: user.name || user.email,
-    content: messageData.content,
-    type: messageData.type || 'text',
-    isFromBot: false,
-    createdAt: new Date(),
-  };
-
-  const chatMessages = messages.get(chatId) || [];
-  chatMessages.push(message);
-  messages.set(chatId, chatMessages);
-
-  // Actualizar último mensaje del chat
-  chat.lastMessage = message;
-  chat.updatedAt = new Date();
-  chats.set(chatId, chat);
-
-  res.status(201).json(message);
 }
 
 /**
- * Obtiene mensajes de un chat
- * @function getMessages
- * @description Retorna los mensajes de un chat
- * @param {Request} req - Request de Express
- * @param {Response} res - Response de Express
- * @returns {void}
+ * Obtiene mensajes de un chat (paginados)
  */
-export function getMessages(req: Request, res: Response): void {
-  const chatId = req.params.chatId as string;
-  const limit = req.query.limit as string ?? '50';
-  const before = req.query.before as string | undefined;
-  const user = (req as any).user;
+export async function getMessages(req: Request, res: Response): Promise<void> {
+  try {
+    const chatId = req.params.chatId;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const before = req.query.before as string | undefined;
+    const user = (req as unknown as AuthenticatedRequest).user;
 
-  const chat = chats.get(chatId);
+    if (!mongoose.Types.ObjectId.isValid(chatId)) {
+      res.status(400).json({ error: 'ID de chat inválido' });
+      return;
+    }
 
-  if (!chat) {
-    res.status(404).json({
-      error: 'Chat no encontrado',
-      message: 'Chat not found',
-    });
-    return;
-  }
+    const chat = await Chat.findById(chatId).lean();
 
-  // Verificar que el usuario es participante
-  const isParticipant = chat.participants.some(p => p.userId === user?.userId);
-  if (!isParticipant) {
-    res.status(403).json({
-      error: 'No autorizado',
-      message: 'Not authorized to view this chat',
-    });
-    return;
-  }
+    if (!chat) {
+      res.status(404).json({
+        error: 'Chat no encontrado',
+        message: 'Chat not found',
+      });
+      return;
+    }
 
-  let chatMessages = messages.get(chatId) || [];
-
-  // Filtrar por fecha si se especifica
-  if (before) {
-    chatMessages = chatMessages.filter(m => 
-      new Date(m.createdAt) < new Date(before as string)
+    const isParticipant = (chat.participants as Participant[]).some(
+      p => p.userId.toString() === user?.userId
     );
+    if (!isParticipant) {
+      res.status(403).json({
+        error: 'No autorizado',
+        message: 'Not authorized to view this chat',
+      });
+      return;
+    }
+
+    const query: Record<string, unknown> = { chatId };
+    if (before) {
+      query.createdAt = { $lt: new Date(before) };
+    }
+
+    const chatMessages = await Message.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    res.json(chatMessages);
+  } catch (error) {
+    console.error('Error en getMessages:', error);
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      message: 'Internal server error',
+    });
   }
-
-  // Limitar resultados
-  chatMessages = chatMessages.slice(-parseInt(limit as string));
-
-  res.json(chatMessages);
 }
 
 /**
  * Marca un chat como leído
- * @function markAsRead
- * @description Marca los mensajes de un chat como leídos
- * @param {Request} req - Request de Express
- * @param {Response} res - Response de Express
- * @returns {void}
  */
-export function markAsRead(req: Request, res: Response): void {
-  const chatId = req.params.chatId as string;
-  const user = (req as any).user;
+export async function markAsRead(req: Request, res: Response): Promise<void> {
+  try {
+    const chatId = req.params.chatId;
+    const user = (req as unknown as AuthenticatedRequest).user;
 
-  const chat = chats.get(chatId);
+    if (!mongoose.Types.ObjectId.isValid(chatId)) {
+      res.status(400).json({ error: 'ID inválido' });
+      return;
+    }
 
-  if (!chat) {
-    res.status(404).json({
-      error: 'Chat no encontrado',
-      message: 'Chat not found',
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      res.status(404).json({
+        error: 'Chat no encontrado',
+        message: 'Chat not found',
+      });
+      return;
+    }
+
+    const participant = (chat.participants as unknown as Array<Participant & { _id: string }>).find(
+      p => p.userId.toString() === user?.userId
+    );
+    if (participant) {
+      participant.lastSeen = new Date();
+      await chat.save();
+    }
+
+    res.json({ message: 'Chat marcado como leído' });
+  } catch (error) {
+    console.error('Error en markAsRead:', error);
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      message: 'Internal server error',
     });
-    return;
   }
-
-  // Actualizar último visto del usuario
-  const participant = chat.participants.find(p => p.userId === user?.userId);
-  if (participant) {
-    participant.lastSeen = new Date();
-    chats.set(chatId, chat);
-  }
-
-  res.json({ message: 'Chat marcado como leído' });
-}
-
-/**
- * Inicializa datos de ejemplo
- * @function seedChats
- */
-function seedChats(): void {
-  // Chats de ejemplo ya están inicializados como Maps vacíos
-  // En producción, esto vendría de MongoDB
 }
 
 export default {

@@ -5,19 +5,15 @@
  */
 
 import type { Request, Response } from 'express';
+import mongoose from 'mongoose';
+import Job from '../../models/Job.js';
 import type { 
-  Job, 
   CreateJobRequest, 
   ApplyJobRequest, 
   JobsResponse,
   ApplicationStatus 
 } from './types.js';
-
-// Base de datos en memoria (en producción, usar MongoDB)
-const jobs: Map<string, Job> = new Map();
-
-// Semilla de datos de ejemplo
-seedJobs();
+import type { AuthenticatedRequest } from '../auth/middleware.js';
 
 /**
  * Obtiene todos los empleos con filtros y paginación
@@ -36,64 +32,65 @@ export async function getJobs(req: Request, res: Response): Promise<void> {
       remote, 
       type, 
       minSalary, 
-      status = 'active',
-      page = 1, 
-      limit = 10 
+      status: filterStatus,
+      page = '1', 
+      limit = '10' 
     } = req.query as Record<string, string>;
 
-    let filteredJobs = Array.from(jobs.values());
-
-    // Aplicar filtros
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filteredJobs = filteredJobs.filter(job => 
-        job.title.toLowerCase().includes(searchLower) ||
-        job.description.toLowerCase().includes(searchLower)
-      );
-    }
-
-    if (city) {
-      filteredJobs = filteredJobs.filter(job => 
-        job.location.city.toLowerCase() === city.toLowerCase()
-      );
-    }
-
-    if (country) {
-      filteredJobs = filteredJobs.filter(job => 
-        job.location.country.toLowerCase() === country.toLowerCase()
-      );
-    }
-
-    if (remote === 'true') {
-      filteredJobs = filteredJobs.filter(job => job.location.remote);
+    // Build query
+    const query: Record<string, unknown> = {};
+    
+    if (filterStatus) {
+      query.status = filterStatus;
+    } else {
+      query.status = 'active';
     }
 
     if (type) {
-      filteredJobs = filteredJobs.filter(job => job.type === type);
+      query.type = type;
+    }
+
+    if (city) {
+      query['location.city'] = new RegExp(city, 'i');
+    }
+
+    if (country) {
+      query['location.country'] = new RegExp(country, 'i');
+    }
+
+    if (remote === 'true') {
+      query['location.remote'] = true;
+    }
+
+    if (search) {
+      query.$or = [
+        { title: new RegExp(search, 'i') },
+        { description: new RegExp(search, 'i') },
+      ];
     }
 
     if (minSalary) {
-      filteredJobs = filteredJobs.filter(job => 
-        job.salary && job.salary.min >= parseInt(minSalary)
-      );
+      query['salary.min'] = { $gte: parseInt(minSalary) };
     }
 
-    if (status) {
-      filteredJobs = filteredJobs.filter(job => job.status === status);
-    }
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
 
-    // Paginación
-    const total = filteredJobs.length;
-    const totalPages = Math.ceil(total / parseInt(String(limit)));
-    const startIndex = (parseInt(String(page)) - 1) * parseInt(String(limit));
-    const paginatedJobs = filteredJobs.slice(startIndex, startIndex + parseInt(String(limit)));
+    const [jobs, total] = await Promise.all([
+      Job.find(query)
+        .sort({ createdAt: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
+        .lean(),
+      Job.countDocuments(query),
+    ]);
 
     const response: JobsResponse = {
-      jobs: paginatedJobs,
+      jobs: jobs as never,
       total,
-      page: parseInt(String(page)),
-      limit: parseInt(String(limit)),
-      totalPages,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
     };
 
     res.json(response);
@@ -112,21 +109,38 @@ export async function getJobs(req: Request, res: Response): Promise<void> {
  * @description Retorna un empleo específico
  * @param {Request} req - Request de Express
  * @param {Response} res - Response de Express
- * @returns {void}
+ * @returns {Promise<void>}
  */
-export function getJobById(req: Request, res: Response): void {
-  const id = req.params.id as string;
-  const job = jobs.get(id);
+export async function getJobById(req: Request, res: Response): Promise<void> {
+  try {
+    const id = req.params.id;
 
-  if (!job) {
-    res.status(404).json({
-      error: 'Empleo no encontrado',
-      message: 'Job not found',
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({
+        error: 'ID inválido',
+        message: 'Invalid job ID',
+      });
+      return;
+    }
+
+    const job = await Job.findById(id).lean();
+
+    if (!job) {
+      res.status(404).json({
+        error: 'Empleo no encontrado',
+        message: 'Job not found',
+      });
+      return;
+    }
+
+    res.json(job);
+  } catch (error) {
+    console.error('Error en getJobById:', error);
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      message: 'Internal server error',
     });
-    return;
   }
-
-  res.json(job);
 }
 
 /**
@@ -140,7 +154,7 @@ export function getJobById(req: Request, res: Response): void {
 export async function createJob(req: Request, res: Response): Promise<void> {
   try {
     const jobData = req.body as CreateJobRequest;
-    const user = (req as any).user;
+    const user = (req as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       res.status(401).json({
@@ -150,7 +164,6 @@ export async function createJob(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // Validar datos requeridos
     if (!jobData.title || !jobData.description || !jobData.requirements) {
       res.status(400).json({
         error: 'Datos incompletos',
@@ -159,8 +172,7 @@ export async function createJob(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const job: Job = {
-      _id: crypto.randomUUID(),
+    const job = new Job({
       title: jobData.title,
       description: jobData.description,
       requirements: jobData.requirements,
@@ -169,14 +181,11 @@ export async function createJob(req: Request, res: Response): Promise<void> {
       salary: jobData.salary,
       type: jobData.type || 'full-time',
       status: 'active',
-      applications: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    });
 
-    jobs.set(job._id, job);
+    const savedJob = await job.save();
 
-    res.status(201).json(job);
+    res.status(201).json(savedJob.toObject());
   } catch (error) {
     console.error('Error en createJob:', error);
     res.status(500).json({
@@ -192,43 +201,51 @@ export async function createJob(req: Request, res: Response): Promise<void> {
  * @description Actualiza los datos de un empleo existente
  * @param {Request} req - Request de Express
  * @param {Response} res - Response de Express
- * @returns {void}
+ * @returns {Promise<void>}
  */
-export function updateJob(req: Request, res: Response): void {
-  const id = req.params.id as string;
-  const jobData = req.body;
-  const user = (req as any).user;
+export async function updateJob(req: Request, res: Response): Promise<void> {
+  try {
+    const id = req.params.id;
+    const jobData = req.body;
+    const user = (req as unknown as AuthenticatedRequest).user;
 
-  const job = jobs.get(id);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({
+        error: 'ID inválido',
+        message: 'Invalid job ID',
+      });
+      return;
+    }
 
-  if (!job) {
-    res.status(404).json({
-      error: 'Empleo no encontrado',
-      message: 'Job not found',
+    const job = await Job.findById(id);
+
+    if (!job) {
+      res.status(404).json({
+        error: 'Empleo no encontrado',
+        message: 'Job not found',
+      });
+      return;
+    }
+
+    if (job.employerId.toString() !== user?.userId) {
+      res.status(403).json({
+        error: 'No autorizado',
+        message: 'Not authorized to update this job',
+      });
+      return;
+    }
+
+    Object.assign(job, jobData);
+    const updatedJob = await job.save();
+
+    res.json(updatedJob.toObject());
+  } catch (error) {
+    console.error('Error en updateJob:', error);
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      message: 'Internal server error',
     });
-    return;
   }
-
-  // Verificar que el usuario es el empleador
-  if (job.employerId !== user?.userId) {
-    res.status(403).json({
-      error: 'No autorizado',
-      message: 'Not authorized to update this job',
-    });
-    return;
-  }
-
-  const updatedJob: Job = {
-    ...job,
-    ...jobData,
-    _id: job._id,
-    employerId: job.employerId,
-    createdAt: job.createdAt,
-    updatedAt: new Date(),
-  };
-
-  jobs.set(id, updatedJob);
-  res.json(updatedJob);
 }
 
 /**
@@ -237,33 +254,49 @@ export function updateJob(req: Request, res: Response): void {
  * @description Elimina un empleo existente
  * @param {Request} req - Request de Express
  * @param {Response} res - Response de Express
- * @returns {void}
+ * @returns {Promise<void>}
  */
-export function deleteJob(req: Request, res: Response): void {
-  const id = req.params.id as string;
-  const user = (req as any).user;
+export async function deleteJob(req: Request, res: Response): Promise<void> {
+  try {
+    const id = req.params.id;
+    const user = (req as unknown as AuthenticatedRequest).user;
 
-  const job = jobs.get(id);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({
+        error: 'ID inválido',
+        message: 'Invalid job ID',
+      });
+      return;
+    }
 
-  if (!job) {
-    res.status(404).json({
-      error: 'Empleo no encontrado',
-      message: 'Job not found',
+    const job = await Job.findById(id);
+
+    if (!job) {
+      res.status(404).json({
+        error: 'Empleo no encontrado',
+        message: 'Job not found',
+      });
+      return;
+    }
+
+    if (job.employerId.toString() !== user?.userId && user?.role !== 'admin') {
+      res.status(403).json({
+        error: 'No autorizado',
+        message: 'Not authorized to delete this job',
+      });
+      return;
+    }
+
+    await Job.findByIdAndDelete(id);
+
+    res.json({ message: 'Empleo eliminado', jobId: id });
+  } catch (error) {
+    console.error('Error en deleteJob:', error);
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      message: 'Internal server error',
     });
-    return;
   }
-
-  // Verificar que el usuario es el empleador o admin
-  if (job.employerId !== user?.userId && user?.role !== 'admin') {
-    res.status(403).json({
-      error: 'No autorizado',
-      message: 'Not authorized to delete this job',
-    });
-    return;
-  }
-
-  jobs.delete(id);
-  res.json({ message: 'Empleo eliminado', jobId: id });
 }
 
 /**
@@ -272,56 +305,72 @@ export function deleteJob(req: Request, res: Response): void {
  * @description Postula a un empleo existente
  * @param {Request} req - Request de Express
  * @param {Response} res - Response de Express
- * @returns {void}
+ * @returns {Promise<void>}
  */
-export function applyToJob(req: Request, res: Response): void {
-  const id = req.params.id as string;
-  const applicationData = req.body as ApplyJobRequest;
-  const user = (req as any).user;
+export async function applyToJob(req: Request, res: Response): Promise<void> {
+  try {
+    const id = req.params.id;
+    const applicationData = req.body as ApplyJobRequest;
+    const user = (req as unknown as AuthenticatedRequest).user;
 
-  const job = jobs.get(id);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({
+        error: 'ID inválido',
+        message: 'Invalid job ID',
+      });
+      return;
+    }
 
-  if (!job) {
-    res.status(404).json({
-      error: 'Empleo no encontrado',
-      message: 'Job not found',
+    const job = await Job.findById(id);
+
+    if (!job) {
+      res.status(404).json({
+        error: 'Empleo no encontrado',
+        message: 'Job not found',
+      });
+      return;
+    }
+
+    if (job.status !== 'active') {
+      res.status(400).json({
+        error: 'El empleo no está activo',
+        message: 'Job is not active',
+      });
+      return;
+    }
+
+    const alreadyApplied = job.applications.some(
+      app => app.userId.toString() === user?.userId
+    );
+
+    if (alreadyApplied) {
+      res.status(400).json({
+        error: 'Ya aplicaste a este empleo',
+        message: 'Already applied to this job',
+      });
+      return;
+    }
+
+    job.applications.push({
+      userId: new mongoose.Types.ObjectId(user?.userId),
+      status: 'pending' as ApplicationStatus,
+      coverLetter: applicationData.coverLetter || '',
+      resume: applicationData.resume || '',
+      createdAt: new Date(),
+    } as never);
+
+    await job.save();
+
+    res.status(201).json({
+      message: 'Postulación exitosa',
     });
-    return;
-  }
-
-  if (job.status !== 'active') {
-    res.status(400).json({
-      error: 'El empleo no está activo',
-      message: 'Job is not active',
+  } catch (error) {
+    console.error('Error en applyToJob:', error);
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      message: 'Internal server error',
     });
-    return;
   }
-
-  // Verificar si ya aplicó
-  const alreadyApplied = job.applications.some(app => app.userId === user?.userId);
-  if (alreadyApplied) {
-    res.status(400).json({
-      error: 'Ya aplicaste a este empleo',
-      message: 'Already applied to this job',
-    });
-    return;
-  }
-
-  const application = {
-    userId: user?.userId || '',
-    status: 'pending' as ApplicationStatus,
-    coverLetter: applicationData.coverLetter,
-    resume: applicationData.resume,
-    createdAt: new Date(),
-  };
-
-  job.applications.push(application);
-  jobs.set(id, job);
-
-  res.status(201).json({
-    message: 'Postulación exitosa',
-    application,
-  });
 }
 
 /**
@@ -330,82 +379,39 @@ export function applyToJob(req: Request, res: Response): void {
  * @description Retorna las postulaciones del usuario actual
  * @param {Request} req - Request de Express
  * @param {Response} res - Response de Express
- * @returns {void}
+ * @returns {Promise<void>}
  */
-export function getMyApplications(req: Request, res: Response): void {
-  const user = (req as any).user;
+export async function getMyApplications(req: Request, res: Response): Promise<void> {
+  try {
+    const user = (req as unknown as AuthenticatedRequest).user;
 
-  if (!user) {
-    res.status(401).json({
-      error: 'No autenticado',
-      message: 'Not authenticated',
-    });
-    return;
-  }
-
-  const userApplications: Array<{ job: Job; application: Job['applications'][0] }> = [];
-
-  jobs.forEach(job => {
-    const application = job.applications.find(app => app.userId === user.userId);
-    if (application) {
-      userApplications.push({ job, application });
+    if (!user) {
+      res.status(401).json({
+        error: 'No autenticado',
+        message: 'Not authenticated',
+      });
+      return;
     }
-  });
 
-  res.json(userApplications);
-}
+    const userJobs = await Job.find(
+      { 'applications.userId': new mongoose.Types.ObjectId(user.userId) },
+      { title: 1, 'applications.$': 1 }
+    ).lean();
 
-/**
- * Semilla de datos de ejemplo
- * @function seedJobs
- */
-function seedJobs(): void {
-  const sampleJobs: Job[] = [
-    {
-      _id: '1',
-      title: 'Frontend Developer',
-      description: 'Buscamos un desarrollador frontend con experiencia en React',
-      requirements: ['React', 'TypeScript', 'CSS', 'HTML'],
-      employerId: 'emp-1',
-      location: { city: 'Madrid', country: 'España', remote: true },
-      salary: { min: 30000, max: 50000, currency: 'EUR' },
-      type: 'full-time',
-      status: 'active',
-      applications: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      _id: '2',
-      title: 'Backend Developer',
-      description: 'Buscamos un desarrollador backend con Node.js',
-      requirements: ['Node.js', 'Express', 'MongoDB', 'TypeScript'],
-      employerId: 'emp-1',
-      location: { city: 'Barcelona', country: 'España', remote: false },
-      salary: { min: 35000, max: 60000, currency: 'EUR' },
-      type: 'full-time',
-      status: 'active',
-      applications: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      _id: '3',
-      title: 'Full Stack Developer',
-      description: 'Desarrollador full stack para proyecto interesante',
-      requirements: ['React', 'Node.js', 'PostgreSQL', 'AWS'],
-      employerId: 'emp-2',
-      location: { city: 'Buenos Aires', country: 'Argentina', remote: true },
-      salary: { min: 40000, max: 70000, currency: 'USD' },
-      type: 'full-time',
-      status: 'active',
-      applications: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
+    const applications = userJobs.map(job => ({
+      jobId: job._id,
+      title: job.title,
+      application: (job as never as { applications: Array<Record<string, unknown>> }).applications?.[0],
+    }));
 
-  sampleJobs.forEach(job => jobs.set(job._id, job));
+    res.json(applications);
+  } catch (error) {
+    console.error('Error en getMyApplications:', error);
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      message: 'Internal server error',
+    });
+  }
 }
 
 export default {

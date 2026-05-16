@@ -9,12 +9,15 @@ import { soloAdmin } from "../middleware/permisos.js";
 import { authRateLimiter, apiRateLimiter, generalRateLimiter } from "../middleware/rateLimit.js";
 import subscriptionRoutes from "../services/subscription/routes.js";
 import auditRoutes from "../services/audit/routes.js";
+import { createAnalyticsRouter } from "../services/analytics/routes.js";
+import { createAuthRouter } from "../services/auth/routes.js";
+import { createJobsRouter } from "../services/jobs/routes.js";
+import { createChatRouter } from "../services/chat/routes.js";
+import { createDonationsRouter } from "../services/donations/routes.js";
+import { createLinkedInRouter } from "../services/linkedin/routes.js";
 import * as suscripcionController from "../controllers/suscripcionController.js";
 import * as analiticasController from "../controllers/analiticasController.js";
 import * as auditoriaController from "../controllers/auditoriaController.js";
-
-void subscriptionRoutes;
-void auditRoutes;
 
 const router = Router();
 
@@ -394,6 +397,36 @@ const routes = (): Router => {
   // RUTAS DE AUDITORÍA | AUDIT ROUTES
   // ==========================================
   router.use("/api/audit", authRateLimiter, auditRoutes);
+
+  // ==========================================
+  // ANALYTICS API | ANALYTICS API ROUTES
+  // ==========================================
+  router.use("/api/analytics", apiRateLimiter, createAnalyticsRouter());
+
+  // ==========================================
+  // AUTH JWT API | AUTH JWT API ROUTES
+  // ==========================================
+  router.use("/api/auth", apiRateLimiter, createAuthRouter());
+
+  // ==========================================
+  // JOBS API | JOBS API ROUTES
+  // ==========================================
+  router.use("/api/jobs", apiRateLimiter, createJobsRouter());
+
+  // ==========================================
+  // CHAT API | CHAT API ROUTES
+  // ==========================================
+  router.use("/api/chat", apiRateLimiter, createChatRouter());
+
+  // ==========================================
+  // DONATIONS API | DONATIONS API ROUTES
+  // ==========================================
+  router.use("/api/donations", apiRateLimiter, createDonationsRouter());
+
+  // ==========================================
+  // LINKEDIN API | LINKEDIN API ROUTES
+  // ==========================================
+  router.use("/api/linkedin", apiRateLimiter, createLinkedInRouter());
 
   // ==========================================
   // VISTAS DE SUSCRIPCIÓN | SUBSCRIPTION VIEWS
