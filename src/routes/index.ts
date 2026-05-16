@@ -9,12 +9,11 @@ import { soloAdmin } from "../middleware/permisos.js";
 import { authRateLimiter, apiRateLimiter, generalRateLimiter } from "../middleware/rateLimit.js";
 import subscriptionRoutes from "../services/subscription/routes.js";
 import auditRoutes from "../services/audit/routes.js";
+import { createAnalyticsRouter } from "../services/analytics/routes.js";
+import { createAuthRouter } from "../services/auth/routes.js";
 import * as suscripcionController from "../controllers/suscripcionController.js";
 import * as analiticasController from "../controllers/analiticasController.js";
 import * as auditoriaController from "../controllers/auditoriaController.js";
-
-void subscriptionRoutes;
-void auditRoutes;
 
 const router = Router();
 
@@ -394,6 +393,16 @@ const routes = (): Router => {
   // RUTAS DE AUDITORÍA | AUDIT ROUTES
   // ==========================================
   router.use("/api/audit", authRateLimiter, auditRoutes);
+
+  // ==========================================
+  // ANALYTICS API | ANALYTICS API ROUTES
+  // ==========================================
+  router.use("/api/analytics", apiRateLimiter, createAnalyticsRouter());
+
+  // ==========================================
+  // AUTH JWT API | AUTH JWT API ROUTES
+  // ==========================================
+  router.use("/api/auth", apiRateLimiter, createAuthRouter());
 
   // ==========================================
   // VISTAS DE SUSCRIPCIÓN | SUBSCRIPTION VIEWS
