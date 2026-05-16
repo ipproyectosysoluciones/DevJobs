@@ -1,0 +1,143 @@
+<main class="panel-administracion">
+    <h2>Analíticas | Analytics Dashboard</h2>
+
+    {{#if mensajes}}
+        <div class="alerta mensaje">{{mensajes}}</div>
+    {{/if}}
+    {{#if errores}}
+        <div class="alerta error">{{errores}}</div>
+    {{/if}}
+
+    {{!-- Resumen de métricas --}}
+    <div class="metricas-grid">
+        <div class="metrica-card">
+            <div class="metrica-valor">{{metrics.totalVacantes}}</div>
+            <div class="metrica-label">Vacantes | Jobs</div>
+        </div>
+        <div class="metrica-card">
+            <div class="metrica-valor">{{metrics.totalPostulaciones}}</div>
+            <div class="metrica-label">Postulaciones | Applications</div>
+        </div>
+        <div class="metrica-card">
+            <div class="metrica-valor">{{metrics.totalUsuarios}}</div>
+            <div class="metrica-label">Usuarios | Users</div>
+        </div>
+        <div class="metrica-card">
+            <div class="metrica-valor">{{metrics.visitasHoy}}</div>
+            <div class="metrica-label">Visitas Hoy | Today's Visits</div>
+        </div>
+    </div>
+
+    {{!-- Actividad reciente --}}
+    <div class="seccion">
+        <h3>Actividad Reciente | Recent Activity</h3>
+        <div class="tabla-actividad">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Evento | Event</th>
+                        <th>Usuario | User</th>
+                        <th>Fecha | Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#if events.length}}
+                        {{#each events}}
+                            <tr>
+                                <td>{{this.tipo}}</td>
+                                <td>{{this.usuario}}</td>
+                                <td>{{formatDate this.fecha}}</td>
+                            </tr>
+                        {{/each}}
+                    {{else}}
+                        <tr>
+                            <td colspan="3">No hay actividad reciente | No recent activity</td>
+                        </tr>
+                    {{/if}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{!-- Vacantes más vistas --}}
+    <div class="seccion">
+        <h3>Vacantes Más Vistas | Most Viewed Jobs</h3>
+        <div class="tabla-vacantes">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vacante | Job</th>
+                        <th>Empresa | Company</th>
+                        <th>Visitas | Views</th>
+                        <th>Postulaciones | Applications</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#if topVacantes.length}}
+                        {{#each topVacantes}}
+                            <tr>
+                                <td><a href="/vacantes/{{this.url}}">{{this.titulo}}</a></td>
+                                <td>{{this.empresa}}</td>
+                                <td>{{this.visitas}}</td>
+                                <td>{{this.postulaciones}}</td>
+                            </tr>
+                        {{/each}}
+                    {{else}}
+                        <tr>
+                            <td colspan="4">No hay datos disponibles | No data available</td>
+                        </tr>
+                    {{/if}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="botones">
+        <a href="/administracion" class="btn btn-cancelar">Volver | Back</a>
+    </div>
+</main>
+
+<style>
+    .metricas-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+    .metrica-card {
+        background: white;
+        border: 1px solid #e1e1e1;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .metrica-valor {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+    }
+    .metrica-label {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+    .seccion {
+        margin: 2rem 0;
+    }
+    .seccion h3 {
+        margin-bottom: 1rem;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    table th, table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #e1e1e1;
+    }
+    table th {
+        background: #f8f8f8;
+        font-weight: 700;
+    }
+</style>

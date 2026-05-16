@@ -42,8 +42,32 @@ export const includes = (array: unknown[], value: unknown): boolean => {
   return Array.isArray(array) && array.includes(value);
 };
 
+/**
+ * Comparar igualdad | Equality comparison
+ * @en Helper for Handlebars #if with equality check
+ */
+export const eq = (a: unknown, b: unknown): boolean => {
+  return a === b;
+};
+
+/**
+ * Formatear fecha | Format date
+ * @en Helper to format a date string
+ */
+export const formatDate = (date: string | Date): string => {
+  if (!date) return '';
+  const d = new Date(date);
+  return d.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
 export default {
   seleccionarSkills,
   tipoContrato,
   mostrarAlertas,
+  eq,
+  formatDate,
 };

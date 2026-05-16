@@ -1,0 +1,100 @@
+<main class="panel-administracion">
+    <h2>Contratar {{plan.name}} | Subscribe to {{plan.name}}</h2>
+
+    {{#if mensajes}}
+        <div class="alerta mensaje">{{mensajes}}</div>
+    {{/if}}
+    {{#if errores}}
+        <div class="alerta error">{{errores}}</div>
+    {{/if}}
+
+    <div class="plan-detalle">
+        <div class="plan-card {{plan.name}}">
+            <div class="plan-header">
+                {{#if (eq plan.name 'premium')}}⭐{{else if (eq plan.name 'basic')}}🔵{{else}}⚪{{/if}}
+                <h3>{{plan.name}}</h3>
+            </div>
+            <div class="plan-precio">
+                ${{plan.precio}}/mes
+            </div>
+            <ul class="plan-caracteristicas">
+                {{#each plan.features}}
+                    <li>✅ {{this}}</li>
+                {{/each}}
+            </ul>
+        </div>
+
+        <div class="opciones-pago">
+            <h3>Método de Pago | Payment Method</h3>
+            <div class="botones-pago">
+                <form action="/api/subscription" method="POST">
+                    <input type="hidden" name="plan" value="{{plan.name}}">
+                    <button type="submit" class="btn btn-verde" style="width:100%;margin:0.5rem 0;">
+                        💳 Pagar con Stripe
+                    </button>
+                </form>
+                <form action="/api/subscription" method="POST">
+                    <input type="hidden" name="plan" value="{{plan.name}}">
+                    <input type="hidden" name="paymentMethod" value="paypal">
+                    <button type="submit" class="btn btn-azul" style="width:100%;margin:0.5rem 0;">
+                        🅿️ Pagar con PayPal
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="botones">
+        <a href="/suscripcion" class="btn btn-cancelar">Volver | Back</a>
+    </div>
+</main>
+
+<style>
+    .plan-detalle {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    .plan-card {
+        border: 2px solid #e1e1e1;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        background: white;
+        margin-bottom: 2rem;
+    }
+    .plan-card.premium {
+        border-color: #f59e0b;
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+    }
+    .plan-card.basic {
+        border-color: #3b82f6;
+    }
+    .plan-header h3 {
+        font-size: 1.5rem;
+        text-transform: capitalize;
+        margin: 0.5rem 0;
+    }
+    .plan-precio {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin: 1rem 0;
+    }
+    .plan-caracteristicas {
+        list-style: none;
+        padding: 0;
+        text-align: left;
+    }
+    .plan-caracteristicas li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .botones-pago {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+    .opciones-pago {
+        margin-top: 1rem;
+    }
+</style>

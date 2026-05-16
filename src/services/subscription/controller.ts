@@ -5,7 +5,7 @@
  */
 
 import type { Request, Response } from 'express';
-import Subscription, { type ISubscriptionDocument } from '../../models/Subscription.js';
+import Subscription from '../../models/Subscription.js';
 
 /**
  * Obtener suscripción por userId

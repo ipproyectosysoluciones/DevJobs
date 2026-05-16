@@ -5,7 +5,7 @@
  */
 
 import type { Request, Response, NextFunction } from 'express';
-import Subscription, { type ISubscriptionDocument } from '../models/Subscription.js';
+import Subscription from '../models/Subscription.js';
 
 /**
  * Plan requerido | Required plan

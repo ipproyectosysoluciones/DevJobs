@@ -1,0 +1,147 @@
+<main class="panel-administracion">
+    <h2>Mi Suscripción | My Subscription</h2>
+
+    {{#if mensajes}}
+        <div class="alerta mensaje">{{mensajes}}</div>
+    {{/if}}
+    {{#if errores}}
+        <div class="alerta error">{{errores}}</div>
+    {{/if}}
+
+    {{#if subscription}}
+        {{!-- Plan actual --}}
+        <div class="suscripcion-actual">
+            <h3>Plan Actual | Current Plan</h3>
+            <div class="plan-card {{subscription.plan}}">
+                <div class="plan-nombre">
+                    {{#if (eq subscription.plan 'premium')}}
+                        ⭐ Premium
+                    {{else if (eq subscription.plan 'basic')}}
+                        🔵 Basic
+                    {{else}}
+                        ⚪ Free
+                    {{/if}}
+                </div>
+                <div class="plan-estado">
+                    Estado | Status: 
+                    {{#if (eq subscription.status 'active')}}
+                        ✅ Activo | Active
+                    {{else if (eq subscription.status 'cancelled')}}
+                        ❌ Cancelado | Cancelled
+                    {{else if (eq subscription.status 'expired')}}
+                        ⏰ Expirado | Expired
+                    {{else}}
+                        ⏳ Pendiente | Pending
+                    {{/if}}
+                </div>
+                <div class="plan-fechas">
+                    <p>Inicio | Start: {{subscription.startDate}}</p>
+                    {{#if subscription.endDate}}
+                        <p>Fin | End: {{subscription.endDate}}</p>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    {{/if}}
+
+    {{!-- Planes disponibles --}}
+    <div class="planes-disponibles">
+        <h3>Planes Disponibles | Available Plans</h3>
+        <div class="planes-grid">
+            {{#each planes}}
+                <div class="plan-card {{#if (eq this.name 'free')}}free{{else if (eq this.name 'basic')}}basic{{else}}premium{{/if}}">
+                    <div class="plan-header">
+                        {{#if (eq this.name 'premium')}}⭐{{else if (eq this.name 'basic')}}🔵{{else}}⚪{{/if}}
+                        <h4>{{this.name}}</h4>
+                    </div>
+                    <div class="plan-precio">
+                        {{#if (eq this.precio 0)}}
+                            Gratis | Free
+                        {{else}}
+                            ${{this.precio}}/mes
+                        {{/if}}
+                    </div>
+                    <ul class="plan-caracteristicas">
+                        {{#each this.features}}
+                            <li>✅ {{this}}</li>
+                        {{/each}}
+                    </ul>
+                    {{#if (eq this.name 'premium')}}
+                        <a href="/suscripcion/contratar/premium" class="btn btn-verde">Contratar | Subscribe</a>
+                    {{else if (eq this.name 'basic')}}
+                        <a href="/suscripcion/contratar/basic" class="btn btn-azul">Contratar | Subscribe</a>
+                    {{else}}
+                        <span class="btn btn-cancelar">Plan Actual | Current</span>
+                    {{/if}}
+                </div>
+            {{/each}}
+        </div>
+    </div>
+
+    <div class="botones">
+        <a href="/administracion" class="btn btn-cancelar">Volver | Back</a>
+        {{#if subscription}}
+            {{#if (eq subscription.status 'active')}}
+                <a href="/suscripcion/cancelar" class="btn btn-rojo" 
+                   onclick="return confirm('¿Cancelar suscripción? | Cancel subscription?')">
+                    Cancelar Suscripción | Cancel Subscription
+                </a>
+            {{/if}}
+        {{/if}}
+    </div>
+</main>
+
+<style>
+    .planes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+    }
+    .plan-card {
+        border: 1px solid #e1e1e1;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        background: white;
+    }
+    .plan-card.premium {
+        border-color: #f59e0b;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+    }
+    .plan-card.basic {
+        border-color: #3b82f6;
+    }
+    .plan-card.free {
+        border-color: #9ca3af;
+    }
+    .plan-header h4 {
+        margin: 0.5rem 0;
+        font-size: 1.25rem;
+        text-transform: capitalize;
+    }
+    .plan-precio {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333;
+        margin: 1rem 0;
+    }
+    .plan-caracteristicas {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0;
+        text-align: left;
+    }
+    .plan-caracteristicas li {
+        padding: 0.4rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .suscripcion-actual {
+        margin-bottom: 2rem;
+    }
+    .plan-fechas {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.5rem;
+    }
+</style>

@@ -1,0 +1,168 @@
+<main class="panel-administracion">
+    <h2>Registro de Auditoría | Audit Log</h2>
+
+    {{#if mensajes}}
+        <div class="alerta mensaje">{{mensajes}}</div>
+    {{/if}}
+    {{#if errores}}
+        <div class="alerta error">{{errores}}</div>
+    {{/if}}
+
+    {{!-- Filtros --}}
+    <div class="filtros-auditoria">
+        <form action="/admin/auditoria" method="GET" class="form-filtros">
+            <div class="campo-filtro">
+                <label for="accion">Acción | Action:</label>
+                <select name="accion" id="accion">
+                    <option value="">Todas | All</option>
+                    <option value="permiso_asignado" {{#if (eq filtros.accion 'permiso_asignado')}}selected{{/if}}>Permiso Asignado</option>
+                    <option value="permiso_removido" {{#if (eq filtros.accion 'permiso_removido')}}selected{{/if}}>Permiso Removido</option>
+                    <option value="rol_asignado" {{#if (eq filtros.accion 'rol_asignado')}}selected{{/if}}>Rol Asignado</option>
+                    <option value="rol_creado" {{#if (eq filtros.accion 'rol_creado')}}selected{{/if}}>Rol Creado</option>
+                    <option value="rol_eliminado" {{#if (eq filtros.accion 'rol_eliminado')}}selected{{/if}}>Rol Eliminado</option>
+                    <option value="suscripcion_creada" {{#if (eq filtros.accion 'suscripcion_creada')}}selected{{/if}}>Suscripción Creada</option>
+                    <option value="suscripcion_cancelada" {{#if (eq filtros.accion 'suscripcion_cancelada')}}selected{{/if}}>Suscripción Cancelada</option>
+                </select>
+            </div>
+            <div class="campo-filtro">
+                <label for="usuario">Usuario | User:</label>
+                <input type="text" name="usuario" id="usuario" value="{{filtros.usuario}}" placeholder="ID de usuario">
+            </div>
+            <button type="submit" class="btn btn-azul">Filtrar | Filter</button>
+            <a href="/admin/auditoria" class="btn btn-cancelar">Limpiar | Clear</a>
+        </form>
+    </div>
+
+    {{!-- Tabla de auditoría --}}
+    <div class="tabla-auditoria">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha | Date</th>
+                    <th>Usuario | User</th>
+                    <th>Acción | Action</th>
+                    <th>Detalles | Details</th>
+                    <th>IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#if logs.length}}
+                    {{#each logs}}
+                        <tr>
+                            <td>{{formatDate this.fecha}}</td>
+                            <td>{{this.usuarioId}}</td>
+                            <td><span class="accion-badge {{this.accion}}">{{this.accion}}</span></td>
+                            <td>
+                                <ul class="detalles-lista">
+                                    {{#each this.detalles}}
+                                        <li>{{@key}}: {{this}}</li>
+                                    {{/each}}
+                                </ul>
+                            </td>
+                            <td>{{this.ip}}</td>
+                        </tr>
+                    {{/each}}
+                {{else}}
+                    <tr>
+                        <td colspan="5">No hay registros de auditoría | No audit records found</td>
+                    </tr>
+                {{/if}}
+            </tbody>
+        </table>
+    </div>
+
+    {{!-- Paginación --}}
+    {{#if pagination.pages}}
+        <div class="paginacion">
+            {{#if pagination.prev}}
+                <a href="/admin/auditoria?pagina={{pagination.prev}}{{#if filtros.accion}}&accion={{filtros.accion}}{{/if}}" class="btn btn-cancelar">← Anterior</a>
+            {{/if}}
+            <span>Página {{pagination.page}} de {{pagination.pages}}</span>
+            {{#if pagination.next}}
+                <a href="/admin/auditoria?pagina={{pagination.next}}{{#if filtros.accion}}&accion={{filtros.accion}}{{/if}}" class="btn btn-azul">Siguiente →</a>
+            {{/if}}
+        </div>
+    {{/if}}
+
+    <div class="botones">
+        <a href="/administracion" class="btn btn-cancelar">Volver | Back</a>
+    </div>
+</main>
+
+<style>
+    .filtros-auditoria {
+        background: white;
+        border: 1px solid #e1e1e1;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    .form-filtros {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+        flex-wrap: wrap;
+    }
+    .campo-filtro {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    .campo-filtro label {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .campo-filtro select,
+    .campo-filtro input {
+        padding: 0.5rem;
+        border: 1px solid #e1e1e1;
+        border-radius: 4px;
+    }
+    .tabla-auditoria {
+        margin: 1rem 0;
+        overflow-x: auto;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    table th, table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #e1e1e1;
+        vertical-align: top;
+    }
+    table th {
+        background: #f8f8f8;
+        font-weight: 700;
+    }
+    .accion-badge {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .accion-badge.permiso_asignado { background: #dbeafe; color: #1e40af; }
+    .accion-badge.permiso_removido { background: #fef3c7; color: #92400e; }
+    .accion-badge.rol_asignado { background: #d1fae5; color: #065f46; }
+    .accion-badge.rol_creado { background: #ede9fe; color: #5b21b6; }
+    .accion-badge.rol_eliminado { background: #fee2e2; color: #991b1b; }
+    .accion-badge.suscripcion_creada { background: #dbeafe; color: #1e40af; }
+    .accion-badge.suscripcion_cancelada { background: #fee2e2; color: #991b1b; }
+    .detalles-lista {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .detalles-lista li {
+        font-size: 0.85rem;
+    }
+    .paginacion {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+</style>
