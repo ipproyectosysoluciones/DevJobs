@@ -84,7 +84,14 @@ export async function getAuditLogs(req: Request, res: Response): Promise<void> {
  */
 export async function getUserAuditHistory(req: Request, res: Response): Promise<void> {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId as string;
+    // Validar userId como ObjectId de MongoDB
+    const OBJECTID_REGEX = /^[a-f0-9]{24}$/i;
+    if (!OBJECTID_REGEX.test(userId)) {
+      res.status(400).json({ error: 'Invalid user ID format' });
+      return;
+    }
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;

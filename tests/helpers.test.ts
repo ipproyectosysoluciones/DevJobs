@@ -222,6 +222,16 @@ describe("HTML Helpers", () => {
       const result = highlight("Hello WORLD", "world");
       expect(result).toContain("<mark>WORLD</mark>");
     });
+
+    it("should escape all special regex characters in multi-char terms", () => {
+      const escaped = escapeRegex(".*+?^${}()|[\\]");
+      // Each special char should be backslash-escaped
+      expect(escaped).toBe("\\.\\*\\+\\?\\^\\$\\{\\}\\(\\)\\|\\[\\\\\\]");
+      // Verify it works in a regex without throwing
+      expect(() => new RegExp(escaped)).not.toThrow();
+      // Verify it matches the original string
+      expect("test .*+?^${}()|[\\] value").toMatch(new RegExp(escaped));
+    });
   });
 });
 

@@ -90,6 +90,9 @@ export const mostrarVacante = async (
     return next();
   }
 
+  // Incrementar contador de visitas (fire & forget)
+  Vacante.findByIdAndUpdate(vacante._id, { $inc: { visitas: 1 } }).exec();
+
   res.render('vacante', {
     vacante,
     nombrePagina: vacante.titulo,
@@ -321,14 +324,29 @@ export const buscarVacantes = async (
   res: Response,
 ): Promise<void> => {
   const Vacante = (await import('../models/Vacantes.js')).default;
+
+  // Sanitizar búsqueda: asegurar string, limitar longitud, prevenir injection
+  const searchTerm = typeof req.body.q === 'string'
+    ? req.body.q.trim().slice(0, 200)
+    : '';
+
+  if (!searchTerm) {
+    req.flash('error', 'Ingresa un término de búsqueda | Enter a search term');
+    res.redirect('/');
+    return;
+  }
+
+  // Escapar caracteres especiales de regex que podrían interferir con $text
+  const sanitized = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
   const vacantes = await Vacante.find({
     $text: {
-      $search: req.body.q,
+      $search: sanitized,
     },
   }).lean();
 
   res.render('home', {
-    nombrePagina: `Resultados para la búsqueda: ${req.body.q} | Search results: ${req.body.q}`,
+    nombrePagina: `Resultados para la búsqueda: ${searchTerm} | Search results: ${searchTerm}`,
     barra: true,
     vacantes,
   });

@@ -24,6 +24,7 @@ export interface IVacanteDocument extends Document {
   url: string;
   skills: string[];
   candidatos: ICandidato[];
+  visitas: number;
   autor: string; // Changed from Types.ObjectId to string
   nombreCompleto: string;
 }
@@ -79,6 +80,10 @@ const vacantesSchema = new Schema<IVacanteDocument>(
     autor: {
       type: String,
       required: [true, "El autor es obligatorio"],
+    },
+    visitas: {
+      type: Number,
+      default: 0,
     },
   },
   {
